@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏆 Leaderboard - Wizard NES</title>
+  <meta name="description" content="AI-powered NES leaderboard. See top players ranked by AI score including points, coins, levels, speed contest wins and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .podium {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 1.5rem;
+      margin: 3rem 0;
+    }
+
+    .podium-place {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .podium-avatar {
+      font-size: 4rem;
+      background: var(--nes-blue);
+      border: 4px solid currentColor;
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .podium-name {
+      font-family: var(--pixel-font);
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .podium-score {
+      font-family: var(--pixel-font);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .podium-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--pixel-font);
+      font-size: 2rem;
+    }
+
+    .podium-1 { color: var(--nes-yellow); }
+    .podium-1 .podium-block { background: #5a3a00; border: 4px solid var(--nes-yellow); height: 120px; width: 100px; }
+    .podium-2 { color: #c0c0c0; }
+    .podium-2 .podium-block { background: #333; border: 4px solid #c0c0c0; height: 90px; width: 90px; }
+    .podium-3 { color: #cd7f32; }
+    .podium-3 .podium-block { background: #2a1a00; border: 4px solid #cd7f32; height: 70px; width: 90px; }
+
+    .lb-filters {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+
+    .my-rank-card {
+      background: rgba(255,215,0,0.08);
+      border: 4px solid var(--nes-yellow);
+      box-shadow: 0 0 30px rgba(255,215,0,0.2);
+      padding: 2.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .my-rank-header {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .rank-number-big {
+      font-family: var(--pixel-font);
+      font-size: 4rem;
+      color: var(--nes-yellow);
+      text-shadow: var(--glow-yellow);
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .rank-info h3 {
+      color: var(--nes-white);
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .rank-info .rank-title-display {
+      font-family: var(--vt-font);
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .leaderboard-tabs {
+      margin-bottom: 1.5rem;
+    }
+
+    .refresh-btn {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    .ai-analysis-panel {
+      background: rgba(255,20,147,0.08);
+      border: 3px solid #ff1493;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+
+    .ai-analysis-panel h4 {
+      color: #ff69b4;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ticker -->
+  <div class="marquee-wrapper">
+    <div class="marquee-content">
+      🏆 LEADERBOARD &nbsp;🤖 AI-POWERED RANKINGS &nbsp;👑 WIZARD MASTER RANK &nbsp;⭐ EARN POINTS TO CLIMB THE RANKS &nbsp;🪙 COLLECT COINS FOR BONUS MULTIPLIERS &nbsp;⚡ WIN SPEED CONTESTS FOR MASSIVE POINTS &nbsp;🏆 LEADERBOARD
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <span class="brand-icon">🧙</span>
+        <span>WIZARD NES</span>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="theater.html">🎬 THEATER</a></li>
+        <li><a href="emulator.html">🎮 EMULATOR</a></li>
+        <li><a href="leaderboard.html" class="active">🏆 SCORES</a></li>
+        <li><a href="contests.html">⚡ CONTESTS</a></li>
+      </ul>
+      <div class="navbar-points">
+        <div class="points-badge"><span>⭐</span><span data-points>0</span></div>
+        <div class="coins-badge"><span class="coin">🪙</span><span data-coins>0</span></div>
+        <button class="nes-btn nes-btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.7rem" data-action="open-profile">
+          <span data-avatar>🎮</span> <span data-username>PLAYER1</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Banner -->
+  <div class="page-banner">
+    <h1 class="page-banner-title">🏆 HALL OF FAME</h1>
+    <p class="page-banner-subtitle">AI-calculated global rankings — who's the ultimate Wizard?</p>
+  </div>
+
+  <main>
+    <div class="container section-padding">
+
+      <!-- My Rank Card -->
+      <div class="my-rank-card" id="my-rank-card">
+        <div style="font-family:var(--pixel-font);color:var(--nes-yellow);font-size:0.85rem;margin-bottom:1.5rem">
+          👤 YOUR RANKING
+        </div>
+        <div class="my-rank-header">
+          <div class="rank-number-big" id="my-rank-num">#?</div>
+          <div style="font-family:var(--pixel-font);font-size:3rem" id="my-avatar">🎮</div>
+          <div class="rank-info">
+            <h3 id="my-name">PLAYER 1</h3>
+            <div class="rank-title-display" id="my-rank-title">🧪 NOVICE</div>
+            <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray)" id="my-ai-score-display">AI Score: 0</div>
+          </div>
+
+          <div style="margin-left:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;min-width:280px">
+            <div style="text-align:center;background:rgba(0,0,0,0.4);border:2px solid #333;padding:1rem">
+              <div style="font-family:var(--pixel-font);font-size:1.4rem;color:var(--nes-yellow)" data-points>0</div>
+              <div style="font-family:var(--vt-font);font-size:1.4rem;color:var(--nes-gray)">POINTS</div>
+            </div>
+            <div style="text-align:center;background:rgba(0,0,0,0.4);border:2px solid #333;padding:1rem">
+              <div style="font-family:var(--pixel-font);font-size:1.4rem;color:var(--nes-cyan)" data-coins>0</div>
+              <div style="font-family:var(--vt-font);font-size:1.4rem;color:var(--nes-gray)">COINS</div>
+            </div>
+            <div style="text-align:center;background:rgba(0,0,0,0.4);border:2px solid #333;padding:1rem">
+              <div style="font-family:var(--pixel-font);font-size:1.4rem;color:var(--nes-green)" id="my-levels">0</div>
+              <div style="font-family:var(--vt-font);font-size:1.4rem;color:var(--nes-gray)">LEVELS</div>
+            </div>
+            <div style="text-align:center;background:rgba(0,0,0,0.4);border:2px solid #333;padding:1rem">
+              <div style="font-family:var(--pixel-font);font-size:1.4rem;color:#ff69b4" id="my-wins">0</div>
+              <div style="font-family:var(--vt-font);font-size:1.4rem;color:var(--nes-gray)">WINS</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress to next rank -->
+        <div id="rank-progress-container" style="margin-top:2rem"></div>
+
+        <!-- AI Analysis -->
+        <div class="ai-analysis-panel">
+          <h4>🤖 AI ANALYSIS</h4>
+          <div id="ai-analysis-content">
+            <div style="font-family:var(--vt-font);font-size:1.8rem;color:var(--nes-gray)">
+              Start playing games and watching movies to receive your AI analysis!
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Podium (Top 3) -->
+      <div class="section-header">
+        <h2 class="section-title">🥇 TOP 3 CHAMPIONS</h2>
+      </div>
+      <div class="podium" id="lb-podium">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Full Leaderboard -->
+      <div class="section-header" style="padding-top:3rem">
+        <h2 class="section-title">📊 FULL RANKINGS</h2>
+      </div>
+
+      <div class="lb-filters">
+        <div class="tabs leaderboard-tabs">
+          <button class="tab-btn active" onclick="Leaderboard.switchTab('ai')" data-tab="ai">🤖 AI SCORE</button>
+          <button class="tab-btn" onclick="Leaderboard.switchTab('points')" data-tab="points">⭐ POINTS</button>
+          <button class="tab-btn" onclick="Leaderboard.switchTab('coins')" data-tab="coins">🪙 COINS</button>
+          <button class="tab-btn" onclick="Leaderboard.switchTab('levels')" data-tab="levels">🏆 LEVELS</button>
+          <button class="tab-btn" onclick="Leaderboard.switchTab('speed')" data-tab="speed">⚡ SPEED</button>
+        </div>
+
+        <button class="nes-btn nes-btn-secondary" style="font-size:0.7rem;margin-left:auto" onclick="Leaderboard.refresh()">
+          🔄 REFRESH
+        </button>
+      </div>
+
+      <div class="leaderboard-container">
+        <div style="overflow-x:auto">
+          <table class="leaderboard-table" id="full-leaderboard">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>PLAYER</th>
+                <th id="score-col-header">🤖 AI SCORE</th>
+                <th>⭐ POINTS</th>
+                <th>🪙 COINS</th>
+                <th>🏆 LEVELS</th>
+                <th>⚡ WINS</th>
+                <th>RANK</th>
+              </tr>
+            </thead>
+            <tbody id="full-lb-body">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- How AI Scoring Works -->
+      <div style="margin-top:4rem">
+        <div class="section-header">
+          <h2 class="section-title">🤖 AI SCORING EXPLAINED</h2>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:2rem;margin-top:2rem">
+
+          <div class="ai-metric" style="padding:2rem">
+            <span class="metric-value">1.0×</span>
+            <span class="metric-label">BASE POINTS</span>
+            <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);margin-top:1rem">
+              Every point you earn is directly counted in your AI score with a 1.0× base multiplier.
+            </div>
+          </div>
+
+          <div class="ai-metric" style="padding:2rem">
+            <span class="metric-value">+0.05</span>
+            <span class="metric-label">COIN BONUS</span>
+            <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);margin-top:1rem">
+              Each coin adds 0.05 bonus to your AI score. Collect thousands for significant boosts!
+            </div>
+          </div>
+
+          <div class="ai-metric" style="padding:2rem">
+            <span class="metric-value">^1.15</span>
+            <span class="metric-label">LEVEL EXP</span>
+            <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);margin-top:1rem">
+              Levels completed are raised to the power 1.15, creating exponential growth for skilled players.
+            </div>
+          </div>
+
+          <div class="ai-metric" style="padding:2rem">
+            <span class="metric-value">2.0×</span>
+            <span class="metric-label">SPEED BONUS</span>
+            <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);margin-top:1rem">
+              Speed contest performance earns the highest multiplier. Faster = higher AI score!
+            </div>
+          </div>
+
+          <div class="ai-metric" style="padding:2rem">
+            <span class="metric-value">1.1^n</span>
+            <span class="metric-label">STREAK MULT</span>
+            <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);margin-top:1rem">
+              Daily login streaks multiply your entire AI score by 1.1 per day (up to 30 days max).
+            </div>
+          </div>
+
+          <div class="ai-metric" style="padding:2rem">
+            <span class="metric-value">+∞</span>
+            <span class="metric-label">ACTIVITY VELOCITY</span>
+            <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);margin-top:1rem">
+              Recent activity in the last 7 days is weighted with a velocity bonus — stay active!
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">🧙 WIZARD NES</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="theater.html">Theater</a>
+        <a href="emulator.html">Emulator</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="contests.html">Contests</a>
+      </div>
+      <p class="footer-copyright">Made with ♥ for NES fans · <span id="year"></span></p>
+    </div>
+  </footer>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" data-action="close-modal">✕</button>
+      <h2 style="color:var(--nes-yellow);margin-bottom:2rem;font-size:1.4rem">👤 YOUR PROFILE</h2>
+      <div id="profile-modal-content"></div>
+    </div>
+  </div>
+
+  <script src="js/ai-engine.js"></script>
+  <script src="js/movies-data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const Leaderboard = (() => {
+      let activeTab = 'ai';
+      let lbData    = [];
+
+      function generateData() {
+        const base = AIEngine.generateLeaderboardData(20);
+
+        // Inject current user
+        const user     = App.getUser();
+        const userEntry = {
+          ...user,
+          id: 'current_user',
+          aiScore: AIEngine.calculateAIScore(user),
+          isCurrentUser: true,
+        };
+
+        return AIEngine.sortLeaderboard([...base, userEntry]);
+      }
+
+      function renderPodium(data) {
+        const top3     = data.slice(0, 3);
+        const container = document.getElementById('lb-podium');
+        if (!container || top3.length < 3) return;
+
+        const order = [top3[1], top3[0], top3[2]]; // 2nd, 1st, 3rd
+        const classes = ['podium-2', 'podium-1', 'podium-3'];
+        const labels  = ['🥈 2ND', '🥇 1ST', '🥉 3RD'];
+
+        container.innerHTML = order.map((p, i) => `
+          <div class="podium-place ${classes[i]}">
+            <div class="podium-avatar">${p.avatar}</div>
+            <div class="podium-name">${p.name}${p.isCurrentUser ? ' (YOU)' : ''}</div>
+            <div class="podium-score">${p.aiScore.toLocaleString()}</div>
+            <div class="podium-block">${labels[i]}</div>
+          </div>
+        `).join('');
+      }
+
+      function getSortKey(tab) {
+        const keys = {
+          ai:     'aiScore',
+          points: 'points',
+          coins:  'coins',
+          levels: 'levelsCompleted',
+          speed:  'bestSpeedTime',
+        };
+        return keys[tab] || 'aiScore';
+      }
+
+      function renderTable(data, tab) {
+        const tbody = document.getElementById('full-lb-body');
+        const header = document.getElementById('score-col-header');
+        if (!tbody) return;
+
+        const headers = {
+          ai:     '🤖 AI SCORE',
+          points: '⭐ POINTS',
+          coins:  '🪙 COINS',
+          levels: '🏆 LEVELS',
+          speed:  '⚡ BEST TIME',
+        };
+        if (header) header.textContent = headers[tab] || '🤖 AI SCORE';
+
+        const key = getSortKey(tab);
+        const sorted = [...data].sort((a, b) => {
+          if (tab === 'speed') {
+            // Lower time is better, 0 means no time
+            if (!a[key]) return 1;
+            if (!b[key]) return -1;
+            return a[key] - b[key];
+          }
+          return b[key] - a[key];
+        });
+
+        tbody.innerHTML = sorted.map((p, i) => {
+          const rank   = AIEngine.getRank(p.aiScore);
+          const rankNum = i + 1;
+          const isUser  = p.isCurrentUser;
+          const rankIcon = rankNum === 1 ? '🥇' : rankNum === 2 ? '🥈' : rankNum === 3 ? '🥉' : `#${rankNum}`;
+
+          let mainScore;
+          if (tab === 'speed' && p.bestSpeedTime) {
+            const ms   = p.bestSpeedTime;
+            const secs = Math.floor(ms / 1000);
+            mainScore  = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
+          } else {
+            mainScore = (p[key] || 0).toLocaleString();
+          }
+
+          return `
+            <tr ${isUser ? 'class="current-user"' : ''}>
+              <td><span class="rank-badge rank-${rankNum <= 3 ? rankNum : 0}">${rankIcon}</span></td>
+              <td>
+                <span class="player-avatar">${p.avatar}</span>
+                <strong>${p.name}</strong>${isUser ? ' <span style="color:var(--nes-yellow);font-family:var(--pixel-font);font-size:0.65rem">(YOU)</span>' : ''}
+              </td>
+              <td><span class="score-value">${mainScore}</span></td>
+              <td><span class="score-value">${(p.points || 0).toLocaleString()}</span></td>
+              <td><span class="coins-value">🪙 ${(p.coins || 0).toLocaleString()}</span></td>
+              <td><span class="level-badge">LVL ${p.levelsCompleted || 0}</span></td>
+              <td style="color:#ff69b4;font-family:var(--pixel-font);font-size:0.85rem">${p.contestsWon || 0}</td>
+              <td><span style="color:${rank.color};font-family:var(--pixel-font);font-size:0.65rem">${rank.title}</span></td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      function updateMyRankCard(data) {
+        const user      = App.getUser();
+        const userEntry = data.find(p => p.isCurrentUser);
+        if (!userEntry) return;
+
+        const rankIndex = data.indexOf(userEntry) + 1;
+        const report    = AIEngine.generateReport(user);
+
+        // Update display elements
+        const els = {
+          '#my-rank-num':         `#${rankIndex}`,
+          '#my-avatar':           user.avatar,
+          '#my-name':             user.name,
+          '#my-rank-title':       report.rank.title,
+          '#my-ai-score-display': `AI Score: ${report.aiScore.toLocaleString()}`,
+          '#my-levels':           user.levelsCompleted || 0,
+          '#my-wins':             user.contestsWon || 0,
+        };
+
+        Object.entries(els).forEach(([sel, val]) => {
+          const el = document.querySelector(sel);
+          if (el) el.textContent = val;
+        });
+
+        // Color rank title
+        const rankTitleEl = document.querySelector('#my-rank-title');
+        if (rankTitleEl) rankTitleEl.style.color = report.rank.color;
+
+        // Progress to next rank
+        const progressContainer = document.getElementById('rank-progress-container');
+        if (progressContainer && report.nextRank) {
+          progressContainer.innerHTML = `
+            <div class="progress-container">
+              <div class="progress-label">
+                <span>Progress to ${report.nextRank.title}</span>
+                <span>${report.nextRank.percentage}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill progress-points" style="width:${report.nextRank.percentage}%"></div>
+              </div>
+              <div style="font-family:var(--vt-font);font-size:1.5rem;color:var(--nes-gray);margin-top:0.5rem">
+                Need ${report.nextRank.needed.toLocaleString()} more AI points
+              </div>
+            </div>
+          `;
+        } else if (progressContainer) {
+          progressContainer.innerHTML = `
+            <div style="font-family:var(--pixel-font);color:var(--nes-yellow);font-size:1rem">
+              👑 TOP RANK ACHIEVED — WIZARD MASTER!
+            </div>
+          `;
+        }
+
+        // AI Analysis
+        const analysisEl = document.getElementById('ai-analysis-content');
+        if (analysisEl) {
+          const tips     = report.tips;
+          const strengths = report.strengths;
+          let html       = '';
+
+          if (strengths.length > 0) {
+            html += `<div style="margin-bottom:1rem">
+              <div style="font-family:var(--pixel-font);font-size:0.7rem;color:var(--nes-green);margin-bottom:0.5rem">✅ STRENGTHS</div>
+              ${strengths.map(s => `<div style="font-family:var(--vt-font);font-size:1.7rem;color:var(--nes-white);margin:0.2rem 0">${s}</div>`).join('')}
+            </div>`;
+          }
+
+          if (tips.length > 0) {
+            html += `<div>
+              <div style="font-family:var(--pixel-font);font-size:0.7rem;color:var(--nes-yellow);margin-bottom:0.5rem">💡 RECOMMENDATIONS</div>
+              ${tips.map(t => `<div style="font-family:var(--vt-font);font-size:1.7rem;color:var(--nes-gray);margin:0.2rem 0">→ ${t}</div>`).join('')}
+            </div>`;
+          }
+
+          if (!html) {
+            html = `<div style="font-family:var(--vt-font);font-size:1.8rem;color:var(--nes-gray)">
+              Play games, watch movies, and join contests to receive personalized AI analysis!
+            </div>`;
+          }
+
+          analysisEl.innerHTML = html;
+        }
+      }
+
+      function switchTab(tab) {
+        activeTab = tab;
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.tab === tab);
+        });
+        renderTable(lbData, tab);
+      }
+
+      function refresh() {
+        lbData = generateData();
+        renderTable(lbData, activeTab);
+        updateMyRankCard(lbData);
+        App.showToast('🔄 Leaderboard refreshed!', 'info');
+      }
+
+      function init() {
+        lbData = generateData();
+        renderPodium(lbData);
+        renderTable(lbData, 'ai');
+        updateMyRankCard(lbData);
+      }
+
+      return { init, switchTab, refresh };
+    })();
+
+    document.addEventListener('DOMContentLoaded', Leaderboard.init);
+  </script>
+</body>
+</html>

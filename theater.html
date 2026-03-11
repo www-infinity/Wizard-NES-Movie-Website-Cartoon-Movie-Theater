@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎬 Cartoon Movie Theater - Wizard NES</title>
+  <meta name="description" content="Watch hundreds of classic public domain cartoons from Internet Archive. Betty Boop, Superman, Felix the Cat, Popeye and more! Earn points while you watch.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .currently-playing {
+      background: rgba(0,0,0,0.6);
+      border: 4px solid var(--nes-cyan);
+      padding: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    .now-playing-title {
+      font-family: var(--pixel-font);
+      font-size: 0.85rem;
+      color: var(--nes-cyan);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .now-playing-title::before {
+      content: '● NOW PLAYING';
+      color: var(--nes-red);
+      animation: blink 1s step-end infinite;
+    }
+
+    .movie-description {
+      font-family: var(--vt-font);
+      font-size: 1.8rem;
+      color: var(--nes-gray);
+      line-height: 1.6;
+      margin: 0.5rem 0 1.5rem;
+    }
+
+    .movie-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      padding: 0.3rem 0.8rem;
+      background: rgba(0,229,255,0.1);
+      border: 1px solid rgba(0,229,255,0.3);
+      font-family: var(--pixel-font);
+      font-size: 0.65rem;
+      color: var(--nes-cyan);
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .search-bar .nes-input {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .youtube-notice {
+      background: rgba(255,0,0,0.1);
+      border: 2px solid #ff4444;
+      padding: 1rem 1.5rem;
+      font-family: var(--vt-font);
+      font-size: 1.6rem;
+      color: #ff8888;
+      margin-bottom: 2rem;
+    }
+
+    .archive-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      background: rgba(255,215,0,0.1);
+      border: 1px solid var(--nes-yellow);
+      font-family: var(--pixel-font);
+      font-size: 0.65rem;
+      color: var(--nes-yellow);
+      margin-left: 1rem;
+    }
+
+    .points-earned-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255,215,0,0.1);
+      border: 2px solid var(--nes-yellow);
+      padding: 1rem 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .watch-timer {
+      font-family: var(--pixel-font);
+      font-size: 1.4rem;
+      color: var(--nes-cyan);
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--nes-gray);
+    }
+
+    .empty-state .empty-icon { font-size: 6rem; margin-bottom: 1.5rem; }
+    .empty-state p { font-family: var(--vt-font); font-size: 2rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Ticker -->
+  <div class="marquee-wrapper">
+    <div class="marquee-content">
+      🎬 CARTOON MOVIE THEATER &nbsp;📽️ BETTY BOOP &nbsp;🦸 SUPERMAN 1941 &nbsp;⚓ POPEYE &nbsp;🐱 FELIX THE CAT &nbsp;🐰 BUGS BUNNY &nbsp;👻 CASPER &nbsp;🐭 MIGHTY MOUSE &nbsp;🐦 WOODY WOODPECKER &nbsp;🎮 NES GAMEPLAY VIDEOS &nbsp;⚡ SPEEDRUNS &nbsp;🎬 CARTOON MOVIE THEATER
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <span class="brand-icon">🧙</span>
+        <span>WIZARD NES</span>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="theater.html" class="active">🎬 THEATER</a></li>
+        <li><a href="emulator.html">🎮 EMULATOR</a></li>
+        <li><a href="leaderboard.html">🏆 SCORES</a></li>
+        <li><a href="contests.html">⚡ CONTESTS</a></li>
+      </ul>
+      <div class="navbar-points">
+        <div class="points-badge"><span>⭐</span><span data-points>0</span></div>
+        <div class="coins-badge"><span class="coin">🪙</span><span data-coins>0</span></div>
+        <button class="nes-btn nes-btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.7rem" data-action="open-profile">
+          <span data-avatar>🎮</span> <span data-username>PLAYER1</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Banner -->
+  <div class="page-banner">
+    <h1 class="page-banner-title">🎬 CARTOON MOVIE THEATER</h1>
+    <p class="page-banner-subtitle">Classic public domain cartoons from Internet Archive &amp; YouTube NES content</p>
+    <div style="margin-top:1.5rem;font-family:var(--vt-font);font-size:1.8rem;color:var(--nes-yellow)">
+      ⭐ Watch cartoons to earn points! Every minute watched = bonus points!
+    </div>
+  </div>
+
+  <main>
+    <div class="container section-padding">
+
+      <!-- Main Theater Screen -->
+      <div style="display:grid;grid-template-columns:1fr min(340px,35%);gap:2rem;align-items:start" id="theater-layout">
+
+        <!-- Screen side -->
+        <div>
+          <div class="theater-container">
+            <div class="theater-screen" id="theater-screen">
+              <div class="screen-placeholder" id="screen-placeholder">
+                <div style="font-size:8rem;margin-bottom:1rem">📽️</div>
+                <div style="font-family:var(--pixel-font);color:var(--nes-gray);font-size:1rem;margin-bottom:1rem">SELECT A MOVIE TO WATCH</div>
+                <p style="font-family:var(--vt-font);font-size:1.8rem;color:var(--nes-gray);max-width:400px;text-align:center">
+                  Choose from the catalog below to start watching classic cartoons and earning points!
+                </p>
+              </div>
+              <iframe id="movie-iframe" style="display:none;width:100%;height:100%;min-height:450px;border:none" allowfullscreen title="Movie player" sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
+            </div>
+          </div>
+
+          <!-- Currently Playing info -->
+          <div class="currently-playing" id="currently-playing" style="display:none">
+            <div class="now-playing-title">
+              <span id="np-title">-</span>
+              <span class="archive-badge" id="np-source">📦 ARCHIVE.ORG</span>
+            </div>
+            <div class="movie-description" id="np-desc">-</div>
+            <div class="movie-tags" id="np-tags"></div>
+
+            <div class="points-earned-bar">
+              <div>
+                <div style="font-family:var(--pixel-font);font-size:0.8rem;color:var(--nes-yellow)">POINTS EARNED</div>
+                <div style="font-family:var(--pixel-font);font-size:1.5rem;color:var(--nes-yellow)" id="watch-points">0</div>
+              </div>
+              <div style="text-align:center">
+                <div class="watch-timer" id="watch-timer">00:00</div>
+                <div style="font-family:var(--pixel-font);font-size:0.65rem;color:var(--nes-gray)">WATCHED</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-family:var(--pixel-font);font-size:0.7rem;color:var(--nes-gray)">NEXT BONUS IN</div>
+                <div style="font-family:var(--pixel-font);font-size:1rem;color:var(--nes-cyan)" id="next-bonus">1:00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar: queue & info -->
+        <div>
+          <div style="background:rgba(0,0,0,0.5);border:3px solid #333;padding:1.5rem">
+            <div style="font-family:var(--pixel-font);color:var(--nes-yellow);font-size:0.9rem;margin-bottom:1.5rem">📋 UP NEXT</div>
+            <div id="up-next-list">
+              <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);text-align:center;padding:2rem 0">
+                Select movies to add to queue
+              </div>
+            </div>
+
+            <div style="margin-top:2rem;padding-top:2rem;border-top:2px solid #333">
+              <div style="font-family:var(--pixel-font);color:var(--nes-cyan);font-size:0.85rem;margin-bottom:1rem">🎯 SESSION STATS</div>
+              <div style="font-family:var(--vt-font);font-size:1.8rem">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+                  <span style="color:var(--nes-gray)">Movies watched:</span>
+                  <span style="color:var(--nes-white)" id="sess-watched">0</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+                  <span style="color:var(--nes-gray)">Points earned:</span>
+                  <span style="color:var(--nes-yellow)" id="sess-points">0</span>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:var(--nes-gray)">Watch time:</span>
+                  <span style="color:var(--nes-cyan)" id="sess-time">0 min</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search + Filter -->
+      <div style="margin-top:4rem">
+        <div class="section-header">
+          <h2 class="section-title">🎥 MOVIE CATALOG</h2>
+        </div>
+
+        <div class="search-bar">
+          <input type="search" id="movie-search" class="nes-input" placeholder="🔍 Search movies…" aria-label="Search movies">
+          <button class="nes-btn nes-btn-secondary" onclick="Theater.search()">SEARCH</button>
+          <button class="nes-btn nes-btn-primary" onclick="Theater.resetFilter()">ALL</button>
+        </div>
+
+        <!-- Category Buttons -->
+        <div class="category-tabs" id="category-tabs" role="tablist">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Movie Grid -->
+        <div class="movie-grid" id="movie-catalog">
+          <!-- Populated by JS -->
+        </div>
+
+        <div id="catalog-empty" class="empty-state" style="display:none">
+          <div class="empty-icon">🔍</div>
+          <p>No movies found for that search. Try another term!</p>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">🧙 WIZARD NES</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="theater.html">Theater</a>
+        <a href="emulator.html">Emulator</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="contests.html">Contests</a>
+      </div>
+      <p class="footer-copyright">
+        Classic cartoons courtesy of <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a>.
+        All cartoons are in the public domain.<br>
+        Made with ♥ for NES fans &middot; <span id="year"></span>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" data-action="close-modal">✕</button>
+      <h2 style="color:var(--nes-yellow);margin-bottom:2rem;font-size:1.4rem">👤 YOUR PROFILE</h2>
+      <div id="profile-modal-content"></div>
+    </div>
+  </div>
+
+  <script src="js/ai-engine.js"></script>
+  <script src="js/movies-data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ---- Theater Module ---- */
+    const Theater = (() => {
+      let currentMovie   = null;
+      let watchStartTime = null;
+      let watchInterval  = null;
+      let sessionWatched = 0;
+      let sessionPoints  = 0;
+      let sessionMinutes = 0;
+      let activeCategory = 'all';
+      let queue          = [];
+      let pointsThisVideo = 0;
+      let watchSeconds   = 0;
+
+      function renderCategories() {
+        const container = document.getElementById('category-tabs');
+        if (!container) return;
+        container.innerHTML = MoviesData.categories.map(c => `
+          <button class="cat-btn ${c.id === 'all' ? 'active' : ''}"
+                  onclick="Theater.filterByCategory('${c.id}')"
+                  data-cat="${c.id}">
+            ${c.label}
+          </button>
+        `).join('');
+      }
+
+      function renderMovies(movies) {
+        const container = document.getElementById('movie-catalog');
+        const empty     = document.getElementById('catalog-empty');
+        if (!container) return;
+
+        if (!movies || movies.length === 0) {
+          container.innerHTML = '';
+          if (empty) empty.style.display = 'flex';
+          return;
+        }
+
+        if (empty) empty.style.display = 'none';
+
+        container.innerHTML = movies.map(m => {
+          const isYT  = !!m.youtubeId;
+          const thumb = isYT
+            ? `https://img.youtube.com/vi/${m.youtubeId}/mqdefault.jpg`
+            : m.thumbnail;
+
+          return `
+            <div class="movie-card" onclick="Theater.play('${m.id}')" role="button" tabindex="0"
+                 aria-label="Play ${m.title}" onkeypress="if(event.key==='Enter')Theater.play('${m.id}')">
+              <div class="movie-thumb">
+                <img src="${thumb}" alt="${m.title}"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                <div style="display:none;align-items:center;justify-content:center;width:100%;height:100%;font-size:5rem">
+                  ${isYT ? '▶️' : '🎬'}
+                </div>
+                <div class="thumb-overlay">▶</div>
+              </div>
+              <div class="movie-info">
+                <div class="movie-title">${m.title}</div>
+                <div class="movie-meta">
+                  <span style="color:var(--nes-gray);font-family:var(--vt-font);font-size:1.4rem">
+                    ${isYT ? '📺 YouTube' : '📦 Archive'} · ${m.year || m.duration || ''}
+                  </span>
+                  <span class="movie-points">+${m.points} pts</span>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function play(id) {
+        const movie = MoviesData.getById(id);
+        if (!movie) return;
+
+        // Stop existing watch timer
+        stopWatchTimer();
+
+        currentMovie = movie;
+        pointsThisVideo = 0;
+        watchSeconds = 0;
+
+        // Build embed URL
+        let embedSrc;
+        if (movie.youtubeId) {
+          embedSrc = `https://www.youtube-nocookie.com/embed/${movie.youtubeId}?autoplay=1&rel=0`;
+        } else {
+          embedSrc = `${movie.embedUrl}?autoplay=1`;
+        }
+
+        // Switch to iframe
+        const placeholder = document.getElementById('screen-placeholder');
+        const iframe      = document.getElementById('movie-iframe');
+        if (placeholder) placeholder.style.display = 'none';
+        if (iframe) {
+          iframe.src = embedSrc;
+          iframe.style.display = 'block';
+        }
+
+        // Show currently playing
+        const cpBox = document.getElementById('currently-playing');
+        if (cpBox) cpBox.style.display = 'block';
+
+        document.getElementById('np-title').textContent = movie.title;
+        document.getElementById('np-desc').textContent  = movie.description || '';
+        document.getElementById('np-source').textContent = movie.youtubeId
+          ? '📺 YOUTUBE' : '📦 ARCHIVE.ORG';
+
+        const tagsEl = document.getElementById('np-tags');
+        if (tagsEl && movie.tags) {
+          tagsEl.innerHTML = movie.tags.map(t => `<span class="tag">${t}</span>`).join('');
+        }
+
+        // Highlight active card
+        document.querySelectorAll('.movie-card').forEach(c => c.style.borderColor = '');
+        const activeCard = document.querySelector(`[onclick="Theater.play('${id}')"]`);
+        if (activeCard) activeCard.style.borderColor = 'var(--nes-yellow)';
+
+        // Start watch timer
+        startWatchTimer(movie.points);
+
+        App.showToast(`🎬 Now watching: ${movie.title}`, 'info');
+        App.playSound('click');
+      }
+
+      function startWatchTimer(pointValue) {
+        watchStartTime = Date.now();
+        const pointsPerMinute = Math.ceil(pointValue / 3);
+
+        watchInterval = setInterval(() => {
+          watchSeconds++;
+          const mins    = Math.floor(watchSeconds / 60);
+          const secs    = watchSeconds % 60;
+          const timerEl = document.getElementById('watch-timer');
+          if (timerEl) timerEl.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+
+          // Award points every 60 seconds
+          if (watchSeconds > 0 && watchSeconds % 60 === 0) {
+            App.addPoints(pointsPerMinute, null);
+            pointsThisVideo += pointsPerMinute;
+            sessionPoints   += pointsPerMinute;
+            const wpEl = document.getElementById('watch-points');
+            if (wpEl) wpEl.textContent = pointsThisVideo;
+
+            sessionMinutes++;
+            const stEl = document.getElementById('sess-time');
+            if (stEl) stEl.textContent = `${sessionMinutes} min`;
+
+            App.showToast(`🎬 +${pointsPerMinute} pts for watching!`, 'success');
+          }
+
+          // Bonus countdown
+          const nextSec = 60 - (watchSeconds % 60);
+          const nextBns = document.getElementById('next-bonus');
+          if (nextBns) nextBns.textContent = `0:${String(nextSec).padStart(2,'0')}`;
+        }, 1000);
+      }
+
+      function stopWatchTimer() {
+        if (watchInterval) {
+          clearInterval(watchInterval);
+          watchInterval = null;
+        }
+
+        // Award completion points on close
+        if (currentMovie && watchSeconds > 10) {
+          const completionPoints = currentMovie.points;
+          App.recordMovieWatch(currentMovie.id, completionPoints);
+          sessionWatched++;
+          const swEl = document.getElementById('sess-watched');
+          if (swEl) swEl.textContent = sessionWatched;
+          const spEl = document.getElementById('sess-points');
+          if (spEl) spEl.textContent = (sessionPoints + completionPoints).toLocaleString();
+        }
+      }
+
+      function filterByCategory(catId) {
+        activeCategory = catId;
+
+        // Update button states
+        document.querySelectorAll('.cat-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.cat === catId);
+        });
+
+        const movies = MoviesData.getByCategory(catId);
+        renderMovies(movies);
+      }
+
+      function search() {
+        const query = document.getElementById('movie-search')?.value?.trim();
+        if (!query) { filterByCategory(activeCategory); return; }
+        renderMovies(MoviesData.search(query));
+      }
+
+      function resetFilter() {
+        const searchInput = document.getElementById('movie-search');
+        if (searchInput) searchInput.value = '';
+        filterByCategory('all');
+      }
+
+      function init() {
+        renderCategories();
+
+        // Check URL param for auto-play
+        const params = new URLSearchParams(window.location.search);
+        const playId = params.get('play');
+
+        const all = MoviesData.getByCategory('all');
+        renderMovies(all);
+
+        if (playId) {
+          setTimeout(() => play(playId), 500);
+        }
+      }
+
+      return { init, play, filterByCategory, search, resetFilter };
+    })();
+
+    document.addEventListener('DOMContentLoaded', Theater.init);
+
+    // Enter key on search
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('movie-search');
+      if (searchInput) {
+        searchInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') Theater.search();
+        });
+      }
+    });
+  </script>
+</body>
+</html>

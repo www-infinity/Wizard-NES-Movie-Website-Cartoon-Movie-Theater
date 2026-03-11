@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎮 NES Emulator - Wizard NES</title>
+  <meta name="description" content="Play free NES homebrew and public domain games right in your browser using EmulatorJS. Earn points, collect coins and compete!">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    #game {
+      width: 100%;
+      max-width: 768px;
+      margin: 0 auto;
+      display: block;
+      background: #000;
+      min-height: 500px;
+    }
+
+    .emulator-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .active-game-info {
+      background: rgba(0,0,0,0.6);
+      border: 3px solid var(--nes-green);
+      padding: 1.5rem;
+    }
+
+    .active-game-title {
+      font-family: var(--pixel-font);
+      font-size: 0.9rem;
+      color: var(--nes-green);
+      text-shadow: var(--glow-green);
+      margin-bottom: 1rem;
+    }
+
+    .game-session-stats {
+      background: rgba(0,0,0,0.5);
+      border: 3px solid #333;
+      padding: 1.5rem;
+    }
+
+    .emu-how-to {
+      background: rgba(0,229,255,0.05);
+      border: 3px solid var(--nes-cyan);
+      padding: 1.5rem;
+    }
+
+    .emu-how-to h4 {
+      color: var(--nes-cyan);
+      margin-bottom: 1rem;
+      font-size: 0.85rem;
+    }
+
+    .how-to-steps {
+      counter-reset: steps;
+    }
+
+    .how-to-step {
+      counter-increment: steps;
+      font-family: var(--vt-font);
+      font-size: 1.7rem;
+      color: var(--nes-white);
+      padding: 0.4rem 0;
+      display: flex;
+      align-items: baseline;
+      gap: 0.8rem;
+    }
+
+    .how-to-step::before {
+      content: counter(steps);
+      background: var(--nes-blue);
+      color: var(--nes-cyan);
+      border: 1px solid var(--nes-cyan);
+      width: 2.2rem;
+      height: 2.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--pixel-font);
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+
+    .game-selected-highlight {
+      border-color: var(--nes-yellow) !important;
+      box-shadow: 0 0 20px rgba(255,215,0,0.4) !important;
+    }
+
+    .emulator-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 500px;
+      background: #000;
+      border: 4px solid #333;
+      padding: 3rem;
+      text-align: center;
+    }
+
+    .emulator-placeholder .big-icon {
+      font-size: 8rem;
+      margin-bottom: 2rem;
+      filter: drop-shadow(0 0 20px var(--nes-green));
+      animation: bounce 1s ease-in-out infinite alternate;
+    }
+
+    .emulator-placeholder h3 {
+      color: var(--nes-green);
+      text-shadow: var(--glow-green);
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+    }
+
+    .emulator-placeholder p {
+      font-family: var(--vt-font);
+      font-size: 1.9rem;
+      color: var(--nes-gray);
+      max-width: 400px;
+    }
+
+    .loading-game {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 500px;
+      background: #000;
+      font-family: var(--pixel-font);
+    }
+
+    .loading-game .load-title {
+      color: var(--nes-green);
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      text-shadow: var(--glow-green);
+    }
+
+    .loading-game .load-sub {
+      font-family: var(--vt-font);
+      font-size: 1.8rem;
+      color: var(--nes-gray);
+      animation: blink 0.8s step-end infinite;
+    }
+
+    .points-overlay {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: rgba(0,0,0,0.8);
+      border: 2px solid var(--nes-yellow);
+      padding: 0.5rem 1rem;
+      font-family: var(--pixel-font);
+      font-size: 0.8rem;
+      color: var(--nes-yellow);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .emulator-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    #emulator-container { position: relative; }
+  </style>
+</head>
+<body>
+
+  <!-- Ticker -->
+  <div class="marquee-wrapper">
+    <div class="marquee-content">
+      🎮 NES EMULATOR &nbsp;🕹️ PLAY HOMEBREW NES GAMES FREE &nbsp;⭐ EARN POINTS WHILE PLAYING &nbsp;🪙 COLLECT COINS &nbsp;🏆 COMPLETE LEVELS FOR BONUSES &nbsp;⚡ TRY SPEED CONTESTS &nbsp;🎮 NES EMULATOR &nbsp;🕹️ PLAY HOMEBREW NES GAMES FREE
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <span class="brand-icon">🧙</span>
+        <span>WIZARD NES</span>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="theater.html">🎬 THEATER</a></li>
+        <li><a href="emulator.html" class="active">🎮 EMULATOR</a></li>
+        <li><a href="leaderboard.html">🏆 SCORES</a></li>
+        <li><a href="contests.html">⚡ CONTESTS</a></li>
+      </ul>
+      <div class="navbar-points">
+        <div class="points-badge"><span>⭐</span><span data-points>0</span></div>
+        <div class="coins-badge"><span class="coin">🪙</span><span data-coins>0</span></div>
+        <button class="nes-btn nes-btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.7rem" data-action="open-profile">
+          <span data-avatar>🎮</span> <span data-username>PLAYER1</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Banner -->
+  <div class="page-banner">
+    <h1 class="page-banner-title">🎮 NES EMULATOR</h1>
+    <p class="page-banner-subtitle">Play free NES homebrew &amp; public domain games. Earn points, collect coins!</p>
+    <div style="margin-top:1.5rem;font-family:var(--vt-font);font-size:1.8rem;color:var(--nes-yellow)">
+      ⭐ Play games to earn points! Complete levels for massive bonuses!
+    </div>
+  </div>
+
+  <main>
+    <div class="container section-padding">
+
+      <div style="display:grid;grid-template-columns:1fr min(320px,30%);gap:2rem;align-items:start">
+
+        <!-- Main Emulator Area -->
+        <div>
+          <div class="emulator-wrapper">
+            <div class="emulator-header">
+              <div class="emulator-title">🎮 WIZARD NES EMULATOR — Powered by EmulatorJS</div>
+              <div class="emulator-actions" style="margin-top:0">
+                <button class="nes-btn nes-btn-green" style="font-size:0.7rem" onclick="Emulator.addCoinsDemo()">🪙 +COIN</button>
+                <button class="nes-btn nes-btn-primary" style="font-size:0.7rem" onclick="Emulator.addLevelDemo()">🏆 +LEVEL</button>
+                <button class="nes-btn" style="font-size:0.7rem;background:#333;color:#aaa;border:2px solid #555" onclick="Emulator.fullscreen()">⛶ FULLSCREEN</button>
+              </div>
+            </div>
+
+            <div id="emulator-container">
+              <!-- Placeholder shown until a game is loaded -->
+              <div class="emulator-placeholder" id="emu-placeholder">
+                <div class="big-icon">🕹️</div>
+                <h3>SELECT A GAME BELOW</h3>
+                <p>Choose any NES game from the library below to load it in the emulator. All games are free homebrew or public domain!</p>
+              </div>
+
+              <!-- Loading state -->
+              <div class="loading-game" id="emu-loading" style="display:none">
+                <div class="loading-bar-wrapper" style="width:300px;margin-bottom:2rem">
+                  <div class="loading-bar-fill"></div>
+                </div>
+                <div class="load-title" id="emu-load-title">LOADING ROM…</div>
+                <div class="load-sub">PLEASE WAIT</div>
+              </div>
+
+              <!-- Points overlay (shown during play) -->
+              <div class="points-overlay" id="points-overlay" style="display:none">
+                ⭐ <span data-points>0</span> PTS &nbsp; 🪙 <span data-coins>0</span>
+              </div>
+
+              <!-- EmulatorJS will inject here -->
+              <div id="game" style="display:none"></div>
+            </div>
+          </div>
+
+          <!-- Controls Reference -->
+          <div class="controls-display">
+            <div class="controls-title">🕹️ DEFAULT KEYBOARD CONTROLS</div>
+            <div class="controls-grid">
+              <div class="control-item">
+                <span class="key-badge">↑↓←→</span>
+                <span style="font-size:1.8rem">D-Pad / Move</span>
+              </div>
+              <div class="control-item">
+                <span class="key-badge">Z</span>
+                <span style="font-size:1.8rem">A Button</span>
+              </div>
+              <div class="control-item">
+                <span class="key-badge">X</span>
+                <span style="font-size:1.8rem">B Button</span>
+              </div>
+              <div class="control-item">
+                <span class="key-badge">ENTER</span>
+                <span style="font-size:1.8rem">Start</span>
+              </div>
+              <div class="control-item">
+                <span class="key-badge">SHIFT</span>
+                <span style="font-size:1.8rem">Select</span>
+              </div>
+              <div class="control-item">
+                <span class="key-badge">A</span>
+                <span style="font-size:1.8rem">Save State</span>
+              </div>
+              <div class="control-item">
+                <span class="key-badge">S</span>
+                <span style="font-size:1.8rem">Load State</span>
+              </div>
+              <div class="control-item">
+                <span class="key-badge">P</span>
+                <span style="font-size:1.8rem">Pause</span>
+              </div>
+            </div>
+            <div style="margin-top:1.5rem;font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray)">
+              💡 Tip: You can also use a USB or Bluetooth gamepad. It will be detected automatically!
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="emulator-sidebar">
+          <!-- Active game info -->
+          <div class="active-game-info" id="active-game-panel" style="display:none">
+            <div class="active-game-title">🎮 NOW PLAYING</div>
+            <div style="font-family:var(--pixel-font);font-size:1rem;color:var(--nes-white);margin-bottom:0.5rem" id="active-game-name">-</div>
+            <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray)" id="active-game-desc">-</div>
+          </div>
+
+          <!-- Session Stats -->
+          <div class="game-session-stats">
+            <div style="font-family:var(--pixel-font);color:var(--nes-cyan);font-size:0.85rem;margin-bottom:1.5rem">📊 SESSION</div>
+            <div style="font-family:var(--vt-font);font-size:1.8rem">
+              <div style="display:flex;justify-content:space-between;margin-bottom:0.8rem;border-bottom:1px solid #333;padding-bottom:0.5rem">
+                <span style="color:var(--nes-gray)">Play time:</span>
+                <span style="color:var(--nes-white)" id="play-time">0 min</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:0.8rem">
+                <span style="color:var(--nes-gray)">Games started:</span>
+                <span style="color:var(--nes-white)" id="games-started">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:0.8rem">
+                <span style="color:var(--nes-gray)">Levels done:</span>
+                <span style="color:var(--nes-yellow)" id="levels-done">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:var(--nes-gray)">Coins earned:</span>
+                <span style="color:var(--nes-cyan)" id="coins-earned">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- How To Play -->
+          <div class="emu-how-to">
+            <h4>📋 HOW TO PLAY</h4>
+            <div class="how-to-steps">
+              <div class="how-to-step">Click any game card below to load it</div>
+              <div class="how-to-step">Wait for the ROM to download</div>
+              <div class="how-to-step">Press Enter/Start to begin</div>
+              <div class="how-to-step">Use arrow keys + Z/X buttons</div>
+              <div class="how-to-step">Earn points &amp; coins as you play!</div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div style="background:rgba(0,0,0,0.5);border:3px solid var(--nes-yellow);padding:1.5rem">
+            <div style="font-family:var(--pixel-font);color:var(--nes-yellow);font-size:0.85rem;margin-bottom:1rem">⚡ QUICK ACTIONS</div>
+            <div style="display:flex;flex-direction:column;gap:0.8rem">
+              <button class="nes-btn nes-btn-gold w-full" onclick="Emulator.addCoinsDemo()" style="font-size:0.75rem">
+                🪙 COLLECT COIN (+1)
+              </button>
+              <button class="nes-btn nes-btn-primary w-full" onclick="Emulator.addLevelDemo()" style="font-size:0.75rem">
+                🏆 COMPLETE LEVEL (+50 pts)
+              </button>
+              <a href="contests.html" class="nes-btn nes-btn-green w-full" style="font-size:0.75rem;text-align:center;display:block">
+                ⚡ ENTER SPEED CONTEST
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Library -->
+      <div style="margin-top:4rem">
+        <div class="section-header">
+          <h2 class="section-title">🕹️ GAME LIBRARY</h2>
+          <p class="section-subtitle">Free NES homebrew games from Internet Archive. Click to play!</p>
+        </div>
+
+        <div class="info-box mb-4">
+          <span class="info-box-icon">ℹ️</span>
+          <p>All games listed below are <strong>free homebrew NES games</strong> or public domain titles
+          available on <a href="https://archive.org" target="_blank" rel="noopener" style="color:var(--nes-yellow)">Internet Archive</a>.
+          They are 100% legal to play! The emulator is powered by
+          <a href="https://emulatorjs.org" target="_blank" rel="noopener" style="color:var(--nes-cyan)">EmulatorJS</a>.</p>
+        </div>
+
+        <div class="game-grid" id="game-library">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+
+      <!-- Achievement Tease -->
+      <div style="margin-top:4rem">
+        <div class="section-header">
+          <h2 class="section-title">🏆 GAMING ACHIEVEMENTS</h2>
+        </div>
+        <div class="features-grid" style="grid-template-columns:repeat(auto-fill,minmax(200px,1fr))">
+          <div class="feature-card" style="padding:2rem">
+            <span class="feature-icon">🎮</span>
+            <h3 style="font-size:0.9rem">FIRST GAME</h3>
+            <p>Play your first NES game</p>
+          </div>
+          <div class="feature-card" style="padding:2rem">
+            <span class="feature-icon">🪙</span>
+            <h3 style="font-size:0.9rem">100 COINS</h3>
+            <p>Collect 100 coins</p>
+          </div>
+          <div class="feature-card" style="padding:2rem">
+            <span class="feature-icon">🏆</span>
+            <h3 style="font-size:0.9rem">LEVEL MASTER</h3>
+            <p>Complete 10 levels</p>
+          </div>
+          <div class="feature-card" style="padding:2rem">
+            <span class="feature-icon">⭐</span>
+            <h3 style="font-size:0.9rem">5K POINTS</h3>
+            <p>Earn 5,000 points</p>
+          </div>
+        </div>
+        <div class="text-center mt-4">
+          <button class="nes-btn nes-btn-gold" data-action="open-profile">🏆 VIEW ALL ACHIEVEMENTS</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">🧙 WIZARD NES</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="theater.html">Theater</a>
+        <a href="emulator.html">Emulator</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="contests.html">Contests</a>
+      </div>
+      <p class="footer-copyright">
+        NES emulation powered by <a href="https://emulatorjs.org" target="_blank" rel="noopener">EmulatorJS</a> ·
+        ROMs from <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a> ·
+        Made with ♥ · <span id="year"></span>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" data-action="close-modal">✕</button>
+      <h2 style="color:var(--nes-yellow);margin-bottom:2rem;font-size:1.4rem">👤 YOUR PROFILE</h2>
+      <div id="profile-modal-content"></div>
+    </div>
+  </div>
+
+  <script src="js/ai-engine.js"></script>
+  <script src="js/movies-data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ---- Emulator Module ---- */
+    const Emulator = (() => {
+      let activeGame     = null;
+      let sessionGames   = 0;
+      let sessionLevels  = 0;
+      let sessionCoins   = 0;
+      let playStartTime  = null;
+      let playInterval   = null;
+      let playMinutes    = 0;
+
+      function loadGame(gameId) {
+        const game = MoviesData.games.find(g => g.id === gameId);
+        if (!game) return;
+
+        activeGame = game;
+        sessionGames++;
+
+        // Show loading
+        const placeholder = document.getElementById('emu-placeholder');
+        const loading     = document.getElementById('emu-loading');
+        const gameDiv     = document.getElementById('game');
+        const overlay     = document.getElementById('points-overlay');
+
+        if (placeholder) placeholder.style.display = 'none';
+        if (loading) { loading.style.display = 'flex'; }
+
+        // Update load title
+        const loadTitle = document.getElementById('emu-load-title');
+        if (loadTitle) loadTitle.textContent = `LOADING: ${game.title.toUpperCase()}`;
+
+        // Update sidebar active game
+        const panel = document.getElementById('active-game-panel');
+        const nameEl = document.getElementById('active-game-name');
+        const descEl = document.getElementById('active-game-desc');
+        if (panel) panel.style.display = 'block';
+        if (nameEl) nameEl.textContent = game.title;
+        if (descEl) descEl.textContent = game.description;
+
+        // Highlight selected card
+        document.querySelectorAll('.game-card').forEach(c => c.classList.remove('game-selected-highlight'));
+        document.querySelector(`[data-game-id="${gameId}"]`)?.classList.add('game-selected-highlight');
+
+        // Record game play
+        App.recordGamePlay();
+        const gsEl = document.getElementById('games-started');
+        if (gsEl) gsEl.textContent = sessionGames;
+
+        // Setup EmulatorJS
+        setupEmulatorJS(game);
+      }
+
+      function setupEmulatorJS(game) {
+        // Remove previous game instance if any
+        const existingScript = document.getElementById('ejs-loader');
+        if (existingScript) existingScript.remove();
+        if (window.EJS_emulator) {
+          try { window.EJS_emulator.pause(); } catch(e) {}
+        }
+
+        // Clear game div
+        const gameDiv = document.getElementById('game');
+        if (gameDiv) {
+          gameDiv.innerHTML = '';
+          gameDiv.style.display = 'block';
+        }
+
+        // Configure EmulatorJS
+        window.EJS_player      = '#game';
+        window.EJS_core        = 'nes';
+        window.EJS_gameUrl     = game.romUrl;
+        window.EJS_pathtodata  = 'https://cdn.emulatorjs.org/stable/data/';
+        window.EJS_gameName    = game.title;
+        window.EJS_color       = '#e94560';
+        window.EJS_startOnLoad = true;
+        window.EJS_defaultControls = {
+          0: {
+            0: { value: 'ArrowUp',    value2: '' },
+            1: { value: 'ArrowDown',  value2: '' },
+            2: { value: 'ArrowLeft',  value2: '' },
+            3: { value: 'ArrowRight', value2: '' },
+            4: { value: 'z',          value2: '' },
+            5: { value: 'x',          value2: '' },
+            8: { value: 'Enter',      value2: '' },
+            9: { value: 'ShiftLeft',  value2: '' },
+          },
+        };
+
+        // Callback when emulator is ready
+        window.EJS_onGameStart = () => {
+          const loading = document.getElementById('emu-loading');
+          if (loading) loading.style.display = 'none';
+          const overlay = document.getElementById('points-overlay');
+          if (overlay) overlay.style.display = 'block';
+          startPlayTimer();
+          App.showToast(`🎮 ${game.title} loaded! Use arrows + Z/X to play`, 'success');
+        };
+
+        // Load EmulatorJS
+        const script  = document.createElement('script');
+        script.id     = 'ejs-loader';
+        script.src    = 'https://cdn.emulatorjs.org/stable/data/loader.js';
+        script.onerror = () => {
+          const loading = document.getElementById('emu-loading');
+          if (loading) loading.style.display = 'none';
+          const gameDiv = document.getElementById('game');
+          if (gameDiv) {
+            gameDiv.innerHTML = `
+              <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:500px;background:#000;padding:3rem;text-align:center">
+                <div style="font-size:5rem;margin-bottom:1.5rem">⚠️</div>
+                <div style="font-family:var(--pixel-font);color:var(--nes-red);font-size:1rem;margin-bottom:1.5rem">EMULATOR LOAD ERROR</div>
+                <p style="font-family:var(--vt-font);font-size:1.8rem;color:var(--nes-gray);max-width:400px;margin-bottom:2rem">
+                  Could not load EmulatorJS. This may be due to network restrictions.
+                  You can play this game directly on Internet Archive:
+                </p>
+                <a href="https://archive.org/details/${game.archiveId}" target="_blank" rel="noopener"
+                   class="nes-btn nes-btn-primary" style="display:inline-block">
+                  🎮 PLAY ON ARCHIVE.ORG →
+                </a>
+              </div>
+            `;
+          }
+          App.showToast('⚠️ Emulator failed to load. Try playing on Archive.org!', 'error');
+        };
+        document.head.appendChild(script);
+      }
+
+      function startPlayTimer() {
+        playStartTime = Date.now();
+        if (playInterval) clearInterval(playInterval);
+
+        playInterval = setInterval(() => {
+          playMinutes++;
+          const ptEl = document.getElementById('play-time');
+          if (ptEl) ptEl.textContent = `${playMinutes} min`;
+
+          // Award points every 5 minutes of play
+          if (playMinutes % 5 === 0) {
+            App.addPoints(25, `🎮 Playing for ${playMinutes} mins! +25 pts`);
+          }
+        }, 60000);
+      }
+
+      function addCoinsDemo() {
+        App.addCoins(1);
+        sessionCoins++;
+        const ceEl = document.getElementById('coins-earned');
+        if (ceEl) ceEl.textContent = sessionCoins;
+      }
+
+      function addLevelDemo() {
+        App.completeLevel();
+        sessionLevels++;
+        const ldEl = document.getElementById('levels-done');
+        if (ldEl) ldEl.textContent = sessionLevels;
+      }
+
+      function fullscreen() {
+        const gameEl = document.getElementById('game');
+        if (gameEl) {
+          if (document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+          } else {
+            gameEl.requestFullscreen?.() || gameEl.webkitRequestFullscreen?.();
+          }
+        }
+      }
+
+      function renderGameLibrary() {
+        const container = document.getElementById('game-library');
+        if (!container) return;
+
+        container.innerHTML = MoviesData.games.map(g => `
+          <div class="game-card" data-game-id="${g.id}"
+               onclick="Emulator.loadGame('${g.id}')"
+               role="button" tabindex="0" aria-label="Play ${g.title}"
+               onkeypress="if(event.key==='Enter')Emulator.loadGame('${g.id}')">
+            <span class="game-icon">${g.icon}</span>
+            <div class="game-name">${g.title}</div>
+            <div class="game-genre">${g.genre} · ${g.year}</div>
+            <div style="margin-top:0.8rem;font-family:var(--vt-font);font-size:1.4rem;color:var(--nes-gray);line-height:1.4">
+              ${g.description}
+            </div>
+            <div style="margin-top:1rem;display:flex;justify-content:space-between;align-items:center">
+              <span style="font-family:var(--pixel-font);font-size:0.65rem;color:var(--nes-cyan)">
+                ${g.players === 2 ? '👥 2 PLAYER' : '👤 1 PLAYER'}
+              </span>
+              ${g.freeware ? '<span style="font-family:var(--pixel-font);font-size:0.65rem;color:var(--nes-green)">🆓 FREEWARE</span>' : ''}
+            </div>
+          </div>
+        `).join('');
+
+        // Check URL param for auto-load
+        const params  = new URLSearchParams(window.location.search);
+        const gameId  = params.get('game');
+        if (gameId) setTimeout(() => loadGame(gameId), 500);
+      }
+
+      return { loadGame, addCoinsDemo, addLevelDemo, fullscreen, renderGameLibrary };
+    })();
+
+    document.addEventListener('DOMContentLoaded', Emulator.renderGameLibrary);
+  </script>
+</body>
+</html>

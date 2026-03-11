@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ Speed Contests - Wizard NES</title>
+  <meta name="description" content="Enter NES speed contests, beat the clock, earn massive point bonuses. AI-calculated results with real-time leaderboards.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .contest-arena {
+      background: rgba(0,0,0,0.7);
+      border: 4px solid var(--nes-purple);
+      box-shadow: 0 0 40px rgba(106,13,173,0.3);
+      padding: 3rem;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .contest-arena::before {
+      content: '';
+      position: absolute;
+      top: -50%; left: -50%;
+      width: 200%; height: 200%;
+      background: conic-gradient(transparent, rgba(106,13,173,0.05), transparent);
+      animation: rotate 10s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes rotate {
+      to { transform: rotate(360deg); }
+    }
+
+    .arena-title {
+      font-family: var(--pixel-font);
+      font-size: 1.5rem;
+      color: #ff69b4;
+      text-shadow: 0 0 20px #ff1493;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+
+    .arena-subtitle {
+      font-family: var(--vt-font);
+      font-size: 2rem;
+      color: var(--nes-gray);
+      text-align: center;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .mega-timer {
+      font-family: var(--pixel-font);
+      font-size: clamp(4rem, 10vw, 8rem);
+      color: var(--nes-red);
+      text-shadow: var(--glow-red);
+      text-align: center;
+      letter-spacing: 8px;
+      line-height: 1;
+      margin: 2rem 0;
+      position: relative;
+      transition: color 0.3s;
+    }
+
+    .mega-timer.warning { color: var(--nes-orange); text-shadow: var(--glow-yellow); }
+    .mega-timer.danger  { color: var(--nes-red);    animation: pulse-danger 0.3s infinite; }
+    .mega-timer.running { color: var(--nes-green);  text-shadow: var(--glow-green); }
+
+    @keyframes pulse-danger {
+      0%, 100% { transform: scale(1);    }
+      50%       { transform: scale(1.05); }
+    }
+
+    .contest-controls {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    .contest-info-row {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid #333;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+
+    .info-cell {
+      text-align: center;
+    }
+
+    .info-cell .label {
+      font-family: var(--pixel-font);
+      font-size: 0.7rem;
+      color: var(--nes-gray);
+      margin-bottom: 0.3rem;
+    }
+
+    .info-cell .value {
+      font-family: var(--pixel-font);
+      font-size: 1.3rem;
+    }
+
+    .challenge-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .challenge-item {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1rem 1.5rem;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid #333;
+      font-family: var(--pixel-font);
+      font-size: 0.8rem;
+      transition: all 0.2s;
+    }
+
+    .challenge-item.completed {
+      border-color: var(--nes-green);
+      color: var(--nes-green);
+      text-decoration: line-through;
+    }
+
+    .challenge-item.active {
+      border-color: var(--nes-yellow);
+      color: var(--nes-yellow);
+      animation: blink-border 0.8s step-end infinite;
+    }
+
+    @keyframes blink-border {
+      50% { border-color: transparent; }
+    }
+
+    .challenge-icon { font-size: 2rem; }
+
+    .challenge-pts {
+      margin-left: auto;
+      color: var(--nes-yellow);
+    }
+
+    .result-banner {
+      background: linear-gradient(135deg, rgba(0,200,0,0.2), rgba(0,100,0,0.2));
+      border: 4px solid var(--nes-green);
+      box-shadow: 0 0 40px rgba(0,200,0,0.3);
+      padding: 3rem;
+      text-align: center;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .result-banner.fail {
+      background: linear-gradient(135deg, rgba(200,0,0,0.2), rgba(100,0,0,0.2));
+      border-color: var(--nes-red);
+      box-shadow: 0 0 40px rgba(200,0,0,0.3);
+    }
+
+    .result-title {
+      font-family: var(--pixel-font);
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .result-score {
+      font-family: var(--pixel-font);
+      font-size: 4rem;
+      color: var(--nes-yellow);
+      text-shadow: var(--glow-yellow);
+      margin: 1.5rem 0;
+    }
+
+    .contest-history-item {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto auto;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid #222;
+      font-family: var(--vt-font);
+      font-size: 1.8rem;
+    }
+
+    .contest-history-item:hover { background: rgba(255,255,255,0.03); }
+
+    .diff-badge {
+      padding: 0.2rem 0.6rem;
+      font-family: var(--pixel-font);
+      font-size: 0.65rem;
+    }
+
+    .diff-easy   { background: #004000; color: var(--nes-green);  border: 1px solid var(--nes-green); }
+    .diff-medium { background: #3a2000; color: var(--nes-yellow); border: 1px solid var(--nes-yellow); }
+    .diff-hard   { background: #400000; color: var(--nes-red);    border: 1px solid var(--nes-red); }
+    .diff-expert { background: #2a0040; color: #ff69b4;           border: 1px solid #ff69b4; }
+
+    .leaderboard-mini {
+      background: rgba(0,0,0,0.5);
+      border: 3px solid var(--nes-yellow);
+      overflow: hidden;
+    }
+
+    .leaderboard-mini-header {
+      background: rgba(255,215,0,0.1);
+      padding: 1rem 1.5rem;
+      font-family: var(--pixel-font);
+      color: var(--nes-yellow);
+      font-size: 0.85rem;
+      border-bottom: 2px solid var(--nes-yellow);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ticker -->
+  <div class="marquee-wrapper">
+    <div class="marquee-content">
+      ⚡ SPEED CONTESTS &nbsp;🏆 BEAT THE CLOCK &nbsp;🤖 AI-SCORED RESULTS &nbsp;💰 WIN MASSIVE POINT BONUSES &nbsp;👑 TOP SPEEDERS IN HALL OF FAME &nbsp;⚡ SPEED CONTESTS
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar" role="navigation">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <span class="brand-icon">🧙</span>
+        <span>WIZARD NES</span>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="index.html">HOME</a></li>
+        <li><a href="theater.html">🎬 THEATER</a></li>
+        <li><a href="emulator.html">🎮 EMULATOR</a></li>
+        <li><a href="leaderboard.html">🏆 SCORES</a></li>
+        <li><a href="contests.html" class="active">⚡ CONTESTS</a></li>
+      </ul>
+      <div class="navbar-points">
+        <div class="points-badge"><span>⭐</span><span data-points>0</span></div>
+        <div class="coins-badge"><span class="coin">🪙</span><span data-coins>0</span></div>
+        <button class="nes-btn nes-btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.7rem" data-action="open-profile">
+          <span data-avatar>🎮</span> <span data-username>PLAYER1</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Banner -->
+  <div class="page-banner">
+    <h1 class="page-banner-title">⚡ SPEED CONTESTS</h1>
+    <p class="page-banner-subtitle">Beat the clock, earn massive bonuses, dominate the AI leaderboard!</p>
+    <div style="margin-top:1.5rem;font-family:var(--vt-font);font-size:1.8rem;color:var(--nes-yellow)">
+      ⚡ Speed contests give 2× AI score bonus — the fastest players rank highest!
+    </div>
+  </div>
+
+  <main>
+    <div class="container section-padding">
+
+      <!-- Main Contest Area -->
+      <div style="display:grid;grid-template-columns:1fr min(340px,35%);gap:2rem;align-items:start">
+
+        <!-- Contest Arena -->
+        <div>
+          <!-- Active Contest / Selection -->
+          <div id="contest-select-view">
+            <div class="section-header" style="padding-top:0">
+              <h2 class="section-title">🎯 CHOOSE A CONTEST</h2>
+            </div>
+            <div class="contest-grid" id="contest-cards">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Contest Running View -->
+          <div id="contest-running-view" style="display:none">
+            <div class="contest-arena">
+              <div class="arena-title" id="arena-title">⚡ SPEED CONTEST</div>
+              <div class="arena-subtitle" id="arena-subtitle">Complete all challenges before time runs out!</div>
+
+              <div class="mega-timer running" id="mega-timer">00:00</div>
+
+              <div class="contest-info-row">
+                <div class="info-cell">
+                  <div class="label">DIFFICULTY</div>
+                  <div class="value" id="contest-diff" style="color:var(--nes-yellow)">MEDIUM</div>
+                </div>
+                <div class="info-cell">
+                  <div class="label">PRIZE POOL</div>
+                  <div class="value" id="contest-prize" style="color:var(--nes-green)">+500 PTS</div>
+                </div>
+                <div class="info-cell">
+                  <div class="label">CHALLENGES</div>
+                  <div class="value" id="contest-progress" style="color:var(--nes-cyan)">0 / 5</div>
+                </div>
+                <div class="info-cell">
+                  <div class="label">YOUR BEST</div>
+                  <div class="value" id="contest-best" style="color:#ff69b4">—</div>
+                </div>
+              </div>
+
+              <div class="challenge-list" id="challenge-list">
+                <!-- Populated by JS -->
+              </div>
+
+              <div class="contest-controls">
+                <button class="nes-btn nes-btn-green" id="btn-next-challenge" onclick="Contest.completeChallenge()">
+                  ✅ COMPLETE CHALLENGE
+                </button>
+                <button class="nes-btn nes-btn-primary" onclick="Contest.abandonContest()">
+                  ❌ ABANDON
+                </button>
+              </div>
+            </div>
+
+            <!-- Current challenge progress -->
+            <div class="progress-container">
+              <div class="progress-label">
+                <span>Contest Progress</span>
+                <span id="progress-pct">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill progress-speed" id="contest-progress-bar" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Result View -->
+          <div id="contest-result-view" style="display:none">
+            <div class="result-banner" id="result-banner">
+              <div class="result-title" id="result-title">🏆 CONTEST COMPLETE!</div>
+              <div class="result-score" id="result-score">+0 PTS</div>
+              <div style="font-family:var(--vt-font);font-size:2.2rem;color:var(--nes-white);margin-bottom:2rem" id="result-details">
+              </div>
+              <div id="result-ai-analysis" style="margin-bottom:2rem"></div>
+              <div style="display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap">
+                <button class="nes-btn nes-btn-gold" onclick="Contest.showSelect()">⚡ PLAY AGAIN</button>
+                <a href="leaderboard.html" class="nes-btn nes-btn-secondary">🏆 VIEW LEADERBOARD</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div>
+          <!-- Speed Leaderboard Mini -->
+          <div class="leaderboard-mini mb-4">
+            <div class="leaderboard-mini-header">⚡ TOP SPEEDERS</div>
+            <div id="speed-lb">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- My Speed Stats -->
+          <div style="background:rgba(0,0,0,0.5);border:3px solid var(--nes-purple);padding:1.5rem;margin-bottom:1.5rem">
+            <div style="font-family:var(--pixel-font);color:#ff69b4;font-size:0.85rem;margin-bottom:1.5rem">📊 MY SPEED STATS</div>
+            <div style="font-family:var(--vt-font);font-size:1.8rem">
+              <div style="display:flex;justify-content:space-between;margin-bottom:0.8rem">
+                <span style="color:var(--nes-gray)">Contests entered:</span>
+                <span id="my-contests-entered" style="color:var(--nes-white)">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:0.8rem">
+                <span style="color:var(--nes-gray)">Contests won:</span>
+                <span id="my-contests-won" style="color:var(--nes-yellow)">0</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:0.8rem">
+                <span style="color:var(--nes-gray)">Win rate:</span>
+                <span id="my-win-rate" style="color:var(--nes-green)">0%</span>
+              </div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:var(--nes-gray)">Best time:</span>
+                <span id="my-best-time" style="color:#ff69b4">—</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contest History -->
+          <div style="background:rgba(0,0,0,0.5);border:3px solid #333;overflow:hidden">
+            <div style="padding:1rem 1.5rem;background:rgba(255,255,255,0.05);font-family:var(--pixel-font);font-size:0.85rem;color:var(--nes-cyan);border-bottom:2px solid #333">
+              📋 RECENT HISTORY
+            </div>
+            <div id="contest-history">
+              <div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);text-align:center;padding:2rem">
+                No contests yet. Enter your first contest!
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contest Types Info -->
+      <div style="margin-top:4rem">
+        <div class="section-header">
+          <h2 class="section-title">📖 CONTEST TYPES</h2>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card" style="padding:2rem">
+            <span class="feature-icon">⏱️</span>
+            <h3 style="font-size:0.9rem">SPEED RUN</h3>
+            <p>Complete a series of challenges as fast as possible. Time bonus multiplied by difficulty!</p>
+          </div>
+          <div class="feature-card" style="padding:2rem">
+            <span class="feature-icon">🪙</span>
+            <h3 style="font-size:0.9rem">COIN RUSH</h3>
+            <p>Collect as many virtual coins as possible before time runs out. More coins = higher score!</p>
+          </div>
+          <div class="feature-card" style="padding:2rem">
+            <span class="feature-icon">🏆</span>
+            <h3 style="font-size:0.9rem">LEVEL BLITZ</h3>
+            <p>Complete the most levels in the shortest time. Perfect for level grinding!</p>
+          </div>
+          <div class="feature-card" style="padding:2rem">
+            <span class="feature-icon">🎯</span>
+            <h3 style="font-size:0.9rem">TRIVIA DASH</h3>
+            <p>Answer NES trivia questions correctly against the clock. Knowledge + speed = win!</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-logo">🧙 WIZARD NES</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="theater.html">Theater</a>
+        <a href="emulator.html">Emulator</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="contests.html">Contests</a>
+      </div>
+      <p class="footer-copyright">Made with ♥ for NES fans · <span id="year"></span></p>
+    </div>
+  </footer>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" data-action="close-modal">✕</button>
+      <h2 style="color:var(--nes-yellow);margin-bottom:2rem;font-size:1.4rem">👤 YOUR PROFILE</h2>
+      <div id="profile-modal-content"></div>
+    </div>
+  </div>
+
+  <script src="js/ai-engine.js"></script>
+  <script src="js/movies-data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ---- Contest Data ---- */
+    const CONTESTS = [
+      {
+        id: 'speed_run_1',
+        title: 'MARIO SPEED RUN',
+        icon: '🍄',
+        type: 'speedrun',
+        description: 'Complete Mario-style challenges as fast as possible. Jump, dodge, collect coins!',
+        difficulty: 'EASY',
+        diffClass: 'diff-easy',
+        diffValue: 1,
+        timeLimit: 120,
+        prize: 250,
+        challenges: [
+          { text: 'Jump over 3 obstacles', pts: 30, icon: '🦘' },
+          { text: 'Collect 10 coins',      pts: 40, icon: '🪙' },
+          { text: 'Defeat 2 enemies',      pts: 50, icon: '⚔️' },
+          { text: 'Find the power-up',     pts: 60, icon: '⭐' },
+          { text: 'Reach the flagpole',    pts: 70, icon: '🚩' },
+        ],
+        active: true,
+      },
+      {
+        id: 'coin_rush_1',
+        title: 'COIN RUSH MADNESS',
+        icon: '🪙',
+        type: 'coinrush',
+        description: 'Collect virtual coins in rapid succession. Speed and accuracy both matter!',
+        difficulty: 'MEDIUM',
+        diffClass: 'diff-medium',
+        diffValue: 2,
+        timeLimit: 90,
+        prize: 400,
+        challenges: [
+          { text: 'Collect 5 bronze coins',  pts: 25,  icon: '🥉' },
+          { text: 'Collect 3 silver coins',  pts: 50,  icon: '🥈' },
+          { text: 'Collect 2 gold coins',    pts: 100, icon: '🥇' },
+          { text: 'Grab the coin multiplier',pts: 75,  icon: '×2' },
+          { text: 'Complete the coin combo!', pts: 150, icon: '🌟' },
+        ],
+        active: true,
+      },
+      {
+        id: 'level_blitz_1',
+        title: 'DUNGEON BLITZ',
+        icon: '🏰',
+        type: 'levelblitz',
+        description: 'Race through dungeon challenges. Complete each room before time expires!',
+        difficulty: 'HARD',
+        diffClass: 'diff-hard',
+        diffValue: 3,
+        timeLimit: 75,
+        prize: 700,
+        challenges: [
+          { text: 'Clear dungeon room 1',    pts: 80,  icon: '🗝️' },
+          { text: 'Defeat the mini-boss',    pts: 120, icon: '👹' },
+          { text: 'Solve the puzzle',        pts: 100, icon: '🧩' },
+          { text: 'Unlock the secret room',  pts: 150, icon: '🚪' },
+          { text: 'Defeat the dungeon boss!', pts: 250, icon: '🐉' },
+        ],
+        active: false,
+      },
+      {
+        id: 'trivia_1',
+        title: 'NES TRIVIA DASH',
+        icon: '🎯',
+        type: 'trivia',
+        description: 'Answer NES trivia questions before time runs out! How well do you know NES history?',
+        difficulty: 'MEDIUM',
+        diffClass: 'diff-medium',
+        diffValue: 2,
+        timeLimit: 120,
+        prize: 500,
+        challenges: [
+          { text: 'Q: What year was NES released in the US?',   pts: 60, icon: '❓', answer: '1985' },
+          { text: 'Q: How many buttons on original NES pad?',    pts: 60, icon: '❓', answer: '8' },
+          { text: 'Q: What was Mario\'s original name?',         pts: 80, icon: '❓', answer: 'Jumpman' },
+          { text: 'Q: What color is Link\'s classic tunic?',     pts: 60, icon: '❓', answer: 'Green' },
+          { text: 'Q: NES was known as what in Japan?',          pts: 100, icon: '❓', answer: 'Famicom' },
+        ],
+        active: true,
+      },
+      {
+        id: 'speed_expert_1',
+        title: 'WIZARD SPEED GAUNTLET',
+        icon: '🧙',
+        type: 'speedrun',
+        description: 'Only for the bravest! An intense speed challenge that separates legends from novices.',
+        difficulty: 'EXPERT',
+        diffClass: 'diff-expert',
+        diffValue: 5,
+        timeLimit: 60,
+        prize: 1500,
+        challenges: [
+          { text: 'Complete the impossible jump series', pts: 200, icon: '⚡' },
+          { text: 'Defeat 5 enemies in 10 seconds',     pts: 300, icon: '💀' },
+          { text: 'Navigate the maze blindfolded',      pts: 350, icon: '🌀' },
+          { text: 'Collect all hidden stars',           pts: 400, icon: '⭐' },
+          { text: 'Defeat the Wizard Boss!',            pts: 600, icon: '🧙' },
+        ],
+        active: false,
+      },
+      {
+        id: 'movie_trivia_1',
+        title: 'CARTOON TRIVIA',
+        icon: '🎬',
+        type: 'trivia',
+        description: 'Test your knowledge of classic cartoons! Betty Boop, Superman, Popeye and more!',
+        difficulty: 'EASY',
+        diffClass: 'diff-easy',
+        diffValue: 1,
+        timeLimit: 150,
+        prize: 300,
+        challenges: [
+          { text: 'Q: What studio made Betty Boop?',     pts: 40, icon: '❓', answer: 'Fleischer' },
+          { text: 'Q: What year did Superman cartoon debut?', pts: 50, icon: '❓', answer: '1941' },
+          { text: "Q: What is Popeye's power source?",   pts: 40, icon: '❓', answer: 'Spinach' },
+          { text: 'Q: Felix the Cat debuted in what decade?', pts: 50, icon: '❓', answer: '1920s' },
+          { text: 'Q: Who created Mighty Mouse?',        pts: 60, icon: '❓', answer: 'Paul Terry' },
+        ],
+        active: true,
+      },
+    ];
+
+    /* ---- Contest Module ---- */
+    const Contest = (() => {
+      let activeContest       = null;
+      let timerInterval       = null;
+      let secondsElapsed      = 0;
+      let challengesCompleted = 0;
+      let challengePts        = 0;
+      let contestHistory      = [];
+
+      function renderContestCards() {
+        const container = document.getElementById('contest-cards');
+        if (!container) return;
+
+        container.innerHTML = CONTESTS.map(c => `
+          <div class="contest-card ${c.active ? 'active' : ''}" onclick="Contest.startContest('${c.id}')">
+            <span class="contest-icon">${c.icon}</span>
+            <div class="contest-title">${c.title}</div>
+            <div class="contest-desc">${c.description}</div>
+
+            <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1rem;flex-wrap:wrap">
+              <span class="diff-badge ${c.diffClass}">${c.difficulty}</span>
+              <span style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray)">
+                ⏱️ ${c.timeLimit}s limit
+              </span>
+            </div>
+
+            <div class="contest-prize">
+              <span>🏆 PRIZE:</span>
+              <span>+${c.prize} PTS</span>
+              <span style="font-family:var(--vt-font);font-size:1.5rem;color:var(--nes-gray)">(+${c.challenges.length * 50} bonus)</span>
+            </div>
+
+            <div style="margin-bottom:1.5rem;font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray)">
+              ${c.challenges.length} challenges · Difficulty ×${c.diffValue}
+            </div>
+
+            <button class="nes-btn ${c.active ? 'nes-btn-green' : 'nes-btn-primary'} w-full" style="font-size:0.75rem">
+              ${c.active ? '● ENTER NOW' : 'COMING SOON'}
+            </button>
+          </div>
+        `).join('');
+      }
+
+      function startContest(id) {
+        const contest = CONTESTS.find(c => c.id === id);
+        if (!contest) return;
+        if (!contest.active) {
+          App.showToast('⏳ This contest is coming soon!', 'info');
+          return;
+        }
+
+        activeContest = contest;
+        secondsElapsed = 0;
+        challengesCompleted = 0;
+        challengePts = 0;
+
+        // Switch views
+        document.getElementById('contest-select-view').style.display = 'none';
+        document.getElementById('contest-running-view').style.display = 'block';
+        document.getElementById('contest-result-view').style.display  = 'none';
+
+        // Set up UI
+        document.getElementById('arena-title').textContent     = `⚡ ${contest.title}`;
+        document.getElementById('arena-subtitle').textContent  = contest.description;
+        document.getElementById('contest-diff').textContent    = contest.difficulty;
+        document.getElementById('contest-prize').textContent   = `+${contest.prize} PTS`;
+        document.getElementById('contest-progress').textContent = `0 / ${contest.challenges.length}`;
+
+        const user = App.getUser();
+        const bestEl = document.getElementById('contest-best');
+        if (bestEl) {
+          bestEl.textContent = user.bestSpeedTime
+            ? formatTime(user.bestSpeedTime)
+            : '—';
+        }
+
+        renderChallenges();
+        startTimer(contest.timeLimit);
+
+        App.showToast(`⚡ ${contest.title} STARTED! Go go go!`, 'success');
+        App.playSound('level');
+      }
+
+      function renderChallenges() {
+        if (!activeContest) return;
+        const list = document.getElementById('challenge-list');
+        if (!list) return;
+
+        list.innerHTML = activeContest.challenges.map((ch, i) => `
+          <div class="challenge-item ${i === 0 ? 'active' : ''}" id="challenge-${i}">
+            <span class="challenge-icon">${ch.icon}</span>
+            <span>${ch.text}</span>
+            <span class="challenge-pts">+${ch.pts}</span>
+          </div>
+        `).join('');
+      }
+
+      function startTimer(limitSecs) {
+        const timerEl = document.getElementById('mega-timer');
+        clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+          secondsElapsed++;
+          const remaining = limitSecs - secondsElapsed;
+
+          if (timerEl) {
+            timerEl.textContent = formatTime(remaining * 1000);
+            timerEl.className   = 'mega-timer running';
+
+            if (remaining <= 10) timerEl.className = 'mega-timer danger';
+            else if (remaining <= 20) timerEl.className = 'mega-timer warning';
+          }
+
+          if (remaining <= 0) {
+            clearInterval(timerInterval);
+            endContest(false);
+          }
+        }, 1000);
+      }
+
+      function completeChallenge() {
+        if (!activeContest) return;
+        if (challengesCompleted >= activeContest.challenges.length) return;
+
+        const ch  = activeContest.challenges[challengesCompleted];
+        challengePts += ch.pts;
+
+        // Mark as completed
+        const chEl = document.getElementById(`challenge-${challengesCompleted}`);
+        if (chEl) chEl.className = 'challenge-item completed';
+
+        challengesCompleted++;
+
+        // Activate next
+        const nextEl = document.getElementById(`challenge-${challengesCompleted}`);
+        if (nextEl) nextEl.className = 'challenge-item active';
+
+        // Update progress
+        const pct = Math.round((challengesCompleted / activeContest.challenges.length) * 100);
+        const progBar = document.getElementById('contest-progress-bar');
+        const progPct = document.getElementById('progress-pct');
+        if (progBar) progBar.style.width = `${pct}%`;
+        if (progPct) progPct.textContent = `${pct}%`;
+        document.getElementById('contest-progress').textContent =
+          `${challengesCompleted} / ${activeContest.challenges.length}`;
+
+        App.addCoins(1);
+        App.showToast(`✅ +${ch.pts} pts!`, 'success');
+
+        // All done
+        if (challengesCompleted >= activeContest.challenges.length) {
+          clearInterval(timerInterval);
+          setTimeout(() => endContest(true), 400);
+        }
+      }
+
+      function endContest(success) {
+        clearInterval(timerInterval);
+        if (!activeContest) return;
+
+        const timeMs      = secondsElapsed * 1000;
+        const speedScore  = success ? AIEngine.calculateSpeedScore(timeMs, activeContest.diffValue, false) : 0;
+        const totalBonus  = success ? (activeContest.prize + challengePts + speedScore) : Math.floor(challengePts * 0.5);
+
+        // Record
+        App.recordSpeedContest(timeMs, success);
+        if (totalBonus > 0) App.addPoints(totalBonus, null);
+
+        // Show result
+        document.getElementById('contest-running-view').style.display = 'none';
+        document.getElementById('contest-result-view').style.display  = 'block';
+
+        const banner      = document.getElementById('result-banner');
+        const resultTitle = document.getElementById('result-title');
+        const resultScore = document.getElementById('result-score');
+        const resultDets  = document.getElementById('result-details');
+
+        if (success) {
+          if (banner) banner.className = 'result-banner';
+          if (resultTitle) resultTitle.textContent = '🏆 CONTEST COMPLETE!';
+          if (resultTitle) resultTitle.style.color = 'var(--nes-green)';
+          App.playSound('win');
+        } else {
+          if (banner) banner.className = 'result-banner fail';
+          if (resultTitle) resultTitle.textContent = '💀 TIME EXPIRED!';
+          if (resultTitle) resultTitle.style.color = 'var(--nes-red)';
+          App.playSound('error');
+        }
+
+        if (resultScore) resultScore.textContent = `+${totalBonus.toLocaleString()} PTS`;
+        if (resultDets) {
+          resultDets.innerHTML = `
+            Completed ${challengesCompleted}/${activeContest.challenges.length} challenges<br>
+            Time: ${formatTime(timeMs)} &nbsp;·&nbsp; Speed bonus: +${speedScore} pts<br>
+            AI Score boost: +${Math.floor(speedScore * 0.5)}
+          `;
+        }
+
+        // AI Analysis
+        const aiAnalysis = document.getElementById('result-ai-analysis');
+        if (aiAnalysis && success) {
+          aiAnalysis.innerHTML = `
+            <div class="ai-panel" style="text-align:left;margin:0">
+              <div class="ai-panel-header" style="margin-bottom:1rem">
+                <span class="ai-icon">🤖</span>
+                <div class="ai-title" style="font-size:1rem">AI POST-CONTEST ANALYSIS</div>
+              </div>
+              <div style="font-family:var(--vt-font);font-size:1.8rem;color:var(--nes-white)">
+                <div>⚡ Speed rating: <strong style="color:#ff69b4">${getSpeedRating(secondsElapsed, activeContest.timeLimit)}</strong></div>
+                <div>🎯 Accuracy: <strong style="color:var(--nes-green)">${Math.round((challengesCompleted/activeContest.challenges.length)*100)}%</strong></div>
+                <div>🔥 Performance: <strong style="color:var(--nes-yellow)">${getPerformanceLabel(success, secondsElapsed, activeContest.timeLimit)}</strong></div>
+              </div>
+            </div>
+          `;
+        }
+
+        // Add to history
+        contestHistory.unshift({
+          title:      activeContest.title,
+          difficulty: activeContest.difficulty,
+          diffClass:  activeContest.diffClass,
+          success,
+          time:       timeMs,
+          points:     totalBonus,
+          date:       new Date().toLocaleDateString(),
+        });
+        renderHistory();
+        updateMyStats();
+
+        activeContest = null;
+      }
+
+      function getSpeedRating(elapsed, limit) {
+        const pct = elapsed / limit;
+        if (pct < 0.3) return 'LIGHTNING FAST ⚡⚡⚡';
+        if (pct < 0.5) return 'FAST ⚡⚡';
+        if (pct < 0.7) return 'AVERAGE ⚡';
+        return 'SLOW 🐌';
+      }
+
+      function getPerformanceLabel(success, elapsed, limit) {
+        if (!success) return 'FAILED — Keep practicing!';
+        const pct = elapsed / limit;
+        if (pct < 0.4) return 'LEGENDARY PERFORMANCE! 🌟';
+        if (pct < 0.6) return 'EXCELLENT! 🥇';
+        if (pct < 0.8) return 'GOOD JOB! 🥈';
+        return 'COMPLETED! 🥉';
+      }
+
+      function abandonContest() {
+        clearInterval(timerInterval);
+        activeContest = null;
+        showSelect();
+        App.showToast('❌ Contest abandoned.', 'error');
+      }
+
+      function showSelect() {
+        document.getElementById('contest-select-view').style.display = 'block';
+        document.getElementById('contest-running-view').style.display = 'none';
+        document.getElementById('contest-result-view').style.display  = 'none';
+      }
+
+      function formatTime(ms) {
+        const totalSecs = Math.max(0, Math.floor(ms / 1000));
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        return `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+      }
+
+      function renderHistory() {
+        const container = document.getElementById('contest-history');
+        if (!container) return;
+
+        if (contestHistory.length === 0) {
+          container.innerHTML = `<div style="font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray);text-align:center;padding:2rem">No contests yet. Enter your first contest!</div>`;
+          return;
+        }
+
+        container.innerHTML = contestHistory.slice(0, 8).map(h => `
+          <div class="contest-history-item">
+            <div>
+              <div style="font-family:var(--pixel-font);font-size:0.75rem;color:var(--nes-white);margin-bottom:0.3rem">${h.title}</div>
+              <div>${h.date}</div>
+            </div>
+            <span class="diff-badge ${h.diffClass}">${h.difficulty}</span>
+            <span style="color:${h.success ? 'var(--nes-green)' : 'var(--nes-red)'};font-family:var(--pixel-font);font-size:0.75rem">
+              ${h.success ? '✅ WIN' : '❌ LOSS'}
+            </span>
+            <span>${formatTime(h.time)}</span>
+            <span style="color:var(--nes-yellow);font-family:var(--pixel-font);font-size:0.8rem">+${h.points}</span>
+          </div>
+        `).join('');
+      }
+
+      function renderSpeedLeaderboard() {
+        const container = document.getElementById('speed-lb');
+        if (!container) return;
+
+        const lb = AIEngine.generateLeaderboardData(8);
+        container.innerHTML = lb
+          .filter(p => p.bestSpeedTime > 0)
+          .slice(0, 5)
+          .map((p, i) => `
+            <div style="display:flex;align-items:center;gap:1rem;padding:0.8rem 1.2rem;border-bottom:1px solid #222">
+              <span style="font-family:var(--pixel-font);font-size:1rem;color:${i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : '#cd7f32'}">#${i+1}</span>
+              <span style="font-size:1.5rem">${p.avatar}</span>
+              <span style="font-family:var(--pixel-font);font-size:0.7rem;color:var(--nes-white);flex:1">${p.name}</span>
+              <span style="font-family:var(--pixel-font);font-size:0.7rem;color:#ff69b4">
+                ${Math.floor(p.bestSpeedTime/1000)}s
+              </span>
+            </div>
+          `).join('');
+      }
+
+      function updateMyStats() {
+        const user = App.getUser();
+        const entered  = user.contestsEntered || 0;
+        const won      = user.contestsWon || 0;
+        const winRate  = entered > 0 ? Math.round((won / entered) * 100) : 0;
+
+        const e = document.getElementById('my-contests-entered');
+        const w = document.getElementById('my-contests-won');
+        const r = document.getElementById('my-win-rate');
+        const b = document.getElementById('my-best-time');
+
+        if (e) e.textContent = entered;
+        if (w) w.textContent = won;
+        if (r) r.textContent = `${winRate}%`;
+        if (b) b.textContent = user.bestSpeedTime ? `${Math.floor(user.bestSpeedTime/1000)}s` : '—';
+      }
+
+      function init() {
+        renderContestCards();
+        renderSpeedLeaderboard();
+        updateMyStats();
+        renderHistory();
+      }
+
+      return { init, startContest, completeChallenge, abandonContest, showSelect };
+    })();
+
+    document.addEventListener('DOMContentLoaded', Contest.init);
+  </script>
+</body>
+</html>
