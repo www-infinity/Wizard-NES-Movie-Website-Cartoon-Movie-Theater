@@ -422,8 +422,8 @@
 
         // Highlight active card
         document.querySelectorAll('.movie-card').forEach(c => c.style.borderColor = '');
-        document.querySelector(`[onclick="Theater.play('${id}')"]`)
-          ?.style && (document.querySelector(`[onclick="Theater.play('${id}')"]`).style.borderColor = 'var(--nes-yellow)');
+        const activeCard = document.querySelector(`[onclick="Theater.play('${id}')"]`);
+        if (activeCard) activeCard.style.borderColor = 'var(--nes-yellow)';
 
         // Start watch timer
         startWatchTimer(movie.points);
