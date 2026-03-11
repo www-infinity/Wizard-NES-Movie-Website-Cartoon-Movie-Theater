@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🧙 Wizard NES - Cartoon Movie Theater & NES Emulator</title>
+  <meta name="description" content="The ultimate NES Movie Website & Cartoon Movie Theater with built-in NES Emulator, AI-powered contests, leaderboards, points, coins and levels tracking.">
+  <meta name="theme-color" content="#e94560">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-logo">🧙 WIZARD NES</div>
+    <div class="loading-bar-wrapper">
+      <div class="loading-bar-fill"></div>
+    </div>
+    <div class="loading-text">LOADING… PRESS START</div>
+  </div>
+
+  <!-- Ticker Marquee -->
+  <div class="marquee-wrapper">
+    <div class="marquee-content">
+      🎮 WELCOME TO WIZARD NES! &nbsp;⭐ PLAY NES GAMES &nbsp;🎬 WATCH CLASSIC CARTOONS &nbsp;🏆 COMPETE IN SPEED CONTESTS &nbsp;🪙 COLLECT COINS &nbsp;🤖 AI-POWERED LEADERBOARDS &nbsp;👑 NEW: WIZARD MASTER RANK AVAILABLE! &nbsp;🎮 WELCOME TO WIZARD NES! &nbsp;⭐ PLAY NES GAMES &nbsp;🎬 WATCH CLASSIC CARTOONS &nbsp;🏆 COMPETE IN SPEED CONTESTS &nbsp;🪙 COLLECT COINS &nbsp;🤖 AI-POWERED LEADERBOARDS
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="index.html" class="navbar-brand">
+        <span class="brand-icon">🧙</span>
+        <span>WIZARD NES</span>
+      </a>
+
+      <ul class="navbar-nav">
+        <li><a href="index.html" aria-current="page">HOME</a></li>
+        <li><a href="theater.html">🎬 THEATER</a></li>
+        <li><a href="emulator.html">🎮 EMULATOR</a></li>
+        <li><a href="leaderboard.html">🏆 SCORES</a></li>
+        <li><a href="contests.html">⚡ CONTESTS</a></li>
+      </ul>
+
+      <div class="navbar-points">
+        <div class="points-badge" title="Your points">
+          <span>⭐</span>
+          <span data-points>0</span>
+        </div>
+        <div class="coins-badge" title="Your coins">
+          <span class="coin">🪙</span>
+          <span data-coins>0</span>
+        </div>
+        <button class="nes-btn nes-btn-secondary" style="padding:0.4rem 0.8rem;font-size:0.7rem" data-action="open-profile" aria-label="Open profile">
+          <span data-avatar>🎮</span> <span data-username>PLAYER1</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div id="hero-stars" class="hero-stars" aria-hidden="true"></div>
+
+    <div class="hero-sprite">
+      <span class="nes-sprite" aria-hidden="true">🧙</span>
+    </div>
+
+    <h1 class="hero-title glitch" data-text="WIZARD NES">WIZARD NES</h1>
+    <p class="hero-subtitle">
+      Cartoon Movie Theater • NES Emulator • AI Contest Leaderboards
+    </p>
+
+    <div class="hero-cta">
+      <a href="theater.html" class="nes-btn nes-btn-primary">🎬 WATCH CARTOONS</a>
+      <a href="emulator.html" class="nes-btn nes-btn-secondary">🎮 PLAY NES GAMES</a>
+      <a href="leaderboard.html" class="nes-btn nes-btn-gold">🏆 LEADERBOARD</a>
+      <a href="contests.html" class="nes-btn nes-btn-green">⚡ CONTESTS</a>
+    </div>
+
+    <div class="scroll-indicator" aria-hidden="true">
+      <span>SCROLL DOWN</span>
+      <span>▼</span>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" role="region" aria-label="Site statistics">
+    <div class="stat-item">
+      <div class="stat-number" data-counter="1247">0</div>
+      <div class="stat-label">🎮 ACTIVE PLAYERS</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-counter="89432">0</div>
+      <div class="stat-label">⭐ TOTAL POINTS EARNED</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-counter="342">0</div>
+      <div class="stat-label">🎬 CARTOONS AVAILABLE</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-counter="12">0</div>
+      <div class="stat-label">🏆 NES GAMES PLAYABLE</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-counter="56">0</div>
+      <div class="stat-label">⚡ CONTESTS COMPLETED</div>
+    </div>
+  </div>
+
+  <!-- Features Section -->
+  <section class="section-padding" id="features">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">🌟 FEATURES</h2>
+        <p class="section-subtitle">Everything you need for the ultimate NES experience</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- NES Emulator -->
+        <a href="emulator.html" class="feature-card pixel-border-blue" style="text-decoration:none">
+          <span class="feature-icon">🎮</span>
+          <h3>NES EMULATOR</h3>
+          <p>Play classic NES homebrew & demo games right in your browser. Full controller support. Earn points while you play!</p>
+          <div style="margin-top:1.5rem">
+            <span class="nes-btn nes-btn-secondary" style="font-size:0.75rem">PLAY NOW →</span>
+          </div>
+        </a>
+
+        <!-- Movie Theater -->
+        <a href="theater.html" class="feature-card pixel-border-red" style="text-decoration:none">
+          <span class="feature-icon">🎬</span>
+          <h3>CARTOON THEATER</h3>
+          <p>Watch hundreds of classic cartoons from Internet Archive. Betty Boop, Superman, Felix the Cat, Popeye &amp; more!</p>
+          <div style="margin-top:1.5rem">
+            <span class="nes-btn nes-btn-primary" style="font-size:0.75rem">WATCH NOW →</span>
+          </div>
+        </a>
+
+        <!-- AI Leaderboard -->
+        <a href="leaderboard.html" class="feature-card pixel-border-gold" style="text-decoration:none">
+          <span class="feature-icon">🤖</span>
+          <h3>AI LEADERBOARD</h3>
+          <p>Our AI engine calculates your score based on points, coins, levels, speed, consistency &amp; more. Climb the ranks!</p>
+          <div style="margin-top:1.5rem">
+            <span class="nes-btn nes-btn-gold" style="font-size:0.75rem">VIEW RANKS →</span>
+          </div>
+        </a>
+
+        <!-- Speed Contests -->
+        <a href="contests.html" class="feature-card" style="text-decoration:none;border:4px solid var(--nes-green)">
+          <span class="feature-icon">⚡</span>
+          <h3>SPEED CONTESTS</h3>
+          <p>Compete in timed speed contests! Beat the clock, earn massive bonus points &amp; prove you're the fastest wizard!</p>
+          <div style="margin-top:1.5rem">
+            <span class="nes-btn nes-btn-green" style="font-size:0.75rem">COMPETE →</span>
+          </div>
+        </a>
+
+        <!-- Points System -->
+        <div class="feature-card" style="border:4px solid #ff69b4">
+          <span class="feature-icon">⭐</span>
+          <h3>POINTS & COINS</h3>
+          <p>Earn points watching movies, playing games &amp; completing challenges. Collect coins for bonus multipliers!</p>
+          <div style="margin-top:1.5rem;font-family:var(--vt-font);font-size:1.6rem;color:var(--nes-gray)">
+            Your Points: <span data-points style="color:var(--nes-yellow);font-family:var(--pixel-font)">0</span>
+          </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="feature-card" style="border:4px solid var(--nes-purple)">
+          <span class="feature-icon">🏆</span>
+          <h3>ACHIEVEMENTS</h3>
+          <p>Unlock 14+ achievements as you play games, watch movies &amp; dominate speed contests. Show off your badges!</p>
+          <div style="margin-top:1.5rem">
+            <button class="nes-btn" style="background:var(--nes-purple);color:white;border:3px solid #ff69b4;font-size:0.75rem" data-action="open-profile">VIEW PROFILE →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Cartoons Preview -->
+  <section class="section-padding" style="background:rgba(0,0,0,0.3)">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">🎬 FEATURED CARTOONS</h2>
+        <p class="section-subtitle">Classic public domain cartoons from Internet Archive</p>
+      </div>
+
+      <div class="movie-grid" id="featured-movies">
+        <!-- Populated by JavaScript -->
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="theater.html" class="nes-btn nes-btn-primary">🎬 VIEW ALL CARTOONS →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- NES Games Preview -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">🎮 NES GAMES</h2>
+        <p class="section-subtitle">Play free homebrew & public domain NES games</p>
+      </div>
+
+      <div class="game-grid" id="featured-games">
+        <!-- Populated by JavaScript -->
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="emulator.html" class="nes-btn nes-btn-secondary">🎮 LAUNCH EMULATOR →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI Score Showcase -->
+  <section class="section-padding" style="background:rgba(0,0,0,0.4)">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">🤖 AI SCORING SYSTEM</h2>
+        <p class="section-subtitle">Our advanced AI calculates your true skill level</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem;margin-top:2rem">
+        <!-- Score factors -->
+        <div class="ai-panel" style="padding:2.5rem">
+          <div class="ai-panel-header">
+            <span class="ai-icon">🤖</span>
+            <div class="ai-title">HOW AI SCORING WORKS</div>
+          </div>
+          <div style="font-family:var(--vt-font);font-size:1.7rem;color:var(--nes-white);line-height:1.8">
+            <div>📊 Base Points × Weight Factor</div>
+            <div>🪙 Coins × 0.05 Bonus</div>
+            <div>🏆 Levels<sup>1.15</sup> × 10 Exp Boost</div>
+            <div>⚡ Speed Contests × 2.0x Bonus</div>
+            <div>🎬 Watch Time Bonuses</div>
+            <div>🔥 Daily Streak Multiplier</div>
+            <div>📈 Activity Velocity Score</div>
+            <div>📅 Login Consistency Reward</div>
+          </div>
+          <div class="ai-thinking mt-4">
+            <span>AI ANALYZING</span>
+            <div class="dot-loader">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Current user AI score -->
+        <div class="ai-panel" style="padding:2.5rem">
+          <div class="ai-panel-header">
+            <span class="ai-icon">📊</span>
+            <div class="ai-title">YOUR AI METRICS</div>
+          </div>
+          <div class="ai-metrics" id="my-ai-metrics">
+            <div class="ai-metric">
+              <span class="metric-value" id="ai-score-display">0</span>
+              <span class="metric-label">AI SCORE</span>
+            </div>
+            <div class="ai-metric">
+              <span class="metric-value" id="ai-rank-display">NOVICE</span>
+              <span class="metric-label">RANK</span>
+            </div>
+            <div class="ai-metric">
+              <span class="metric-value" id="ai-percentile">N/A</span>
+              <span class="metric-label">PERCENTILE</span>
+            </div>
+            <div class="ai-metric">
+              <span class="metric-value" id="ai-streak">0</span>
+              <span class="metric-label">STREAK</span>
+            </div>
+          </div>
+          <div style="margin-top:2rem">
+            <button class="nes-btn nes-btn-gold w-full" data-action="open-profile">
+              🤖 VIEW FULL AI REPORT
+            </button>
+          </div>
+        </div>
+
+        <!-- Rank progression -->
+        <div class="ai-panel" style="padding:2.5rem">
+          <div class="ai-panel-header">
+            <span class="ai-icon">👑</span>
+            <div class="ai-title">RANK TIERS</div>
+          </div>
+          <div style="font-family:var(--vt-font);font-size:1.6rem">
+            <div style="color:#808080;padding:0.4rem 0;border-bottom:1px solid #222">🧪 NOVICE — 0 pts</div>
+            <div style="color:#e94560;padding:0.4rem 0;border-bottom:1px solid #222">⭐ ADVENTURER — 100 pts</div>
+            <div style="color:#f5a623;padding:0.4rem 0;border-bottom:1px solid #222">🪄 APPRENTICE — 500 pts</div>
+            <div style="color:#00c800;padding:0.4rem 0;border-bottom:1px solid #222">🗡️ WARRIOR — 2,000 pts</div>
+            <div style="color:#00e5ff;padding:0.4rem 0;border-bottom:1px solid #222">🛡️ CHAMPION — 5,000 pts</div>
+            <div style="color:#9b59b6;padding:0.4rem 0;border-bottom:1px solid #222">🧙 ARCANE KNIGHT — 10K</div>
+            <div style="color:#ff69b4;padding:0.4rem 0;border-bottom:1px solid #222">⚔️ DUNGEON LORD — 25K</div>
+            <div style="color:#ffd700;padding:0.4rem 0">👑 WIZARD MASTER — 50K</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Internet Archive Credit + Info -->
+  <section class="section-padding" style="background:rgba(0,0,0,0.5)">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">📚 POWERED BY INTERNET ARCHIVE</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:2rem">
+        <div class="info-box">
+          <span class="info-box-icon">📽️</span>
+          <p>Thousands of classic public domain cartoons are available free on the <strong>Internet Archive</strong> (archive.org). We stream them directly so you earn points watching!</p>
+        </div>
+        <div class="info-box" style="border-color:var(--nes-red)">
+          <span class="info-box-icon">🎮</span>
+          <p>NES homebrew games and public domain ROMs are legally available on Internet Archive. Play them free using our built-in <strong>EmulatorJS</strong> powered emulator!</p>
+        </div>
+        <div class="info-box" style="border-color:var(--nes-yellow)">
+          <span class="info-box-icon">📺</span>
+          <p>We also embed curated <strong>YouTube</strong> content featuring NES gameplay, speedruns, reviews, and NES history documentaries for bonus points!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Leaderboard Preview -->
+  <section class="section-padding">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">🏆 TOP PLAYERS</h2>
+        <p class="section-subtitle">AI-calculated global rankings updated in real-time</p>
+      </div>
+
+      <div class="leaderboard-container">
+        <div class="leaderboard-header">
+          <h2>🏆 WIZARD NES HALL OF FAME</h2>
+          <a href="leaderboard.html" class="nes-btn nes-btn-gold" style="font-size:0.75rem">FULL LEADERBOARD →</a>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="leaderboard-table" id="home-leaderboard">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>PLAYER</th>
+                <th>AI SCORE</th>
+                <th>POINTS</th>
+                <th>COINS</th>
+                <th>LEVEL</th>
+              </tr>
+            </thead>
+            <tbody id="home-lb-body">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="leaderboard.html" class="nes-btn nes-btn-gold">🏆 SEE FULL LEADERBOARD →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-logo">🧙 WIZARD NES</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="theater.html">Theater</a>
+        <a href="emulator.html">Emulator</a>
+        <a href="leaderboard.html">Leaderboard</a>
+        <a href="contests.html">Contests</a>
+      </div>
+      <p class="footer-copyright">
+        Classic cartoons courtesy of <a href="https://archive.org" target="_blank" rel="noopener">Internet Archive</a> &amp;
+        <a href="https://youtube.com" target="_blank" rel="noopener">YouTube</a>.
+        NES emulation powered by <a href="https://emulatorjs.org" target="_blank" rel="noopener">EmulatorJS</a>.
+        <br><br>
+        Made with <span>♥</span> for NES fans everywhere · <span id="year"></span>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="Player Profile">
+    <div class="modal">
+      <button class="modal-close" data-action="close-modal" aria-label="Close">✕</button>
+      <h2 style="color:var(--nes-yellow);margin-bottom:2rem;font-size:1.4rem">👤 YOUR PROFILE</h2>
+      <div id="profile-modal-content">
+        <!-- Rendered by App.renderProfileContent() -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/ai-engine.js"></script>
+  <script src="js/movies-data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Populate featured movies
+    document.addEventListener('DOMContentLoaded', () => {
+      // Featured movies
+      const featured = MoviesData.getFeatured();
+      const movieContainer = document.getElementById('featured-movies');
+      if (movieContainer && featured) {
+        movieContainer.innerHTML = featured.map(m => `
+          <div class="movie-card" onclick="window.location='theater.html?play=${m.id}'">
+            <div class="movie-thumb">
+              <img src="${m.thumbnail}" alt="${m.title}" onerror="this.parentElement.innerHTML='<span style=font-size:4rem>${m.category.includes('nes') ? '🎮' : '🎬'}</span>'">
+              <div class="thumb-overlay">▶</div>
+            </div>
+            <div class="movie-info">
+              <div class="movie-title">${m.title}</div>
+              <div class="movie-meta">
+                <span>${m.year || ''}</span>
+                <span class="movie-points">+${m.points} pts</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Featured games (first 4)
+      const gameContainer = document.getElementById('featured-games');
+      if (gameContainer && MoviesData.games) {
+        const games = MoviesData.games.slice(0, 4);
+        gameContainer.innerHTML = games.map(g => `
+          <div class="game-card" onclick="window.location='emulator.html?game=${g.id}'">
+            <span class="game-icon">${g.icon}</span>
+            <div class="game-name">${g.title}</div>
+            <div class="game-genre">${g.genre} · ${g.year}</div>
+          </div>
+        `).join('');
+      }
+
+      // Home leaderboard (top 5)
+      const tbody = document.getElementById('home-lb-body');
+      if (tbody) {
+        const lb = AIEngine.generateLeaderboardData(5);
+        tbody.innerHTML = lb.map((p, i) => `
+          <tr>
+            <td><span class="rank-badge rank-${i+1}">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`}</span></td>
+            <td><span class="player-avatar">${p.avatar}</span>${p.name}</td>
+            <td><span class="ai-score">${p.aiScore.toLocaleString()}</span></td>
+            <td><span class="score-value">${p.points.toLocaleString()}</span></td>
+            <td><span class="coins-value">🪙 ${p.coins.toLocaleString()}</span></td>
+            <td><span class="level-badge">LVL ${p.levelsCompleted}</span></td>
+          </tr>
+        `).join('');
+      }
+
+      // Update AI metrics display
+      const user = App.getUser();
+      if (user) {
+        const report = AIEngine.generateReport(user);
+        const aiScoreEl = document.getElementById('ai-score-display');
+        const aiRankEl  = document.getElementById('ai-rank-display');
+        const aiPctEl   = document.getElementById('ai-percentile');
+        const aiStrkEl  = document.getElementById('ai-streak');
+
+        if (aiScoreEl) App.animateCounter(aiScoreEl, report.aiScore);
+        if (aiRankEl)  aiRankEl.textContent = report.rank.title.replace(/^[^\s]+\s/, '');
+        if (aiPctEl)   aiPctEl.textContent = 'TOP 50%';
+        if (aiStrkEl)  aiStrkEl.textContent = user.loginStreak || 1;
+      }
+    });
+  </script>
+</body>
+</html>
